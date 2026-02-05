@@ -6,6 +6,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LAZER BLADE 3 - Sample Editor</title>
     <style>
+
+        /* --- TERMINAL UI STYLES --- */
+:root {
+    --terminal-green: #00FF41; 
+    --terminal-black: #000000;
+}
+
+@font-face {
+    font-family: 'NIN';
+    /* Ensure nin.ttf is in the same directory as this HTML file */
+    src: url('nin.ttf') format('truetype'), local('Courier New'), monospace;
+    font-display: swap;
+}
+
+body {
+    font-family: 'NIN', 'TerminalFont', monospace;
+    background-color: var(--terminal-black);
+    color: var(--terminal-green);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    text-shadow: 0 0 2px var(--terminal-green);
+    /* Improves readability for blocky/pixel fonts */
+    image-rendering: pixelated;
+    font-smooth: never;
+    -webkit-font-smoothing: none;
+}
+
+.container {
+    width: 100%;
+    max-width: 800px;
+    background-color: var(--terminal-black);
+    border: 2px solid var(--terminal-green);
+    padding: 15px;
+    box-shadow: 0 0 5px var(--terminal-green);
+}
+
+#custom-header {
+    font-family: 'NIN', monospace;
+    text-align: left;
+    margin-bottom: 20px;
+    font-size: 2.2em; /* nin.ttf often looks better slightly larger */
+    line-height: 1.1;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--terminal-green);
+    letter-spacing: 1px;
+}
+
+button, #fileInputLabel {
+    font-family: 'NIN', monospace;
+    background-color: var(--terminal-black);
+    color: var(--terminal-green);
+    border: 2px solid var(--terminal-green);
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 18px; /* Adjusted for NIN legibility */
+    cursor: pointer;
+    text-transform: uppercase;
+}
+/* ... rest of your interactive styles remain the same ... */
         /* Define the terminal font (monospace fallback is critical) */
         @font-face {
             font-family: 'TerminalFont';
