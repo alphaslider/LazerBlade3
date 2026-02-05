@@ -1,280 +1,125 @@
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LAZER BLADE 3 - Sample Editor</title>
     <style>
-
-        /* --- TERMINAL UI STYLES --- */
-:root {
-    --terminal-green: #00FF41; 
-    --terminal-black: #000000;
-}
-
-@font-face {
-
-    /* --- TERMINAL UI STYLES --- */
-:root {
-    --terminal-green: #00FF41; 
-    --terminal-black: #000000;
-}
-
-/* 1. Load both custom fonts */
-@font-face {
-    font-family: 'NIN';
-    src: url('nin.ttf') format('truetype'), local('Impact'), sans-serif;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'DATA';
-    src: url('data.ttf') format('truetype'), local('Courier New'), monospace;
-    font-display: swap;
-}
-
-body {
-    /* Set DATA as the default for the entire page */
-    font-family: 'DATA', monospace;
-    background-color: var(--terminal-black);
-    color: var(--terminal-green);
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    text-shadow: 0 0 2px var(--terminal-green);
-    /* Keep that sharp, aliased look */
-    -webkit-font-smoothing: none;
-    font-smooth: never;
-}
-
-/* 2. Apply NIN specifically to the header */
-#custom-header {
-    font-family: 'NIN', sans-serif;
-    text-align: left;
-    margin-bottom: 20px;
-    font-size: 2.2em;
-    line-height: 1.1;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--terminal-green);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-}
-
-/* 3. Ensure all data fields and controls use DATA.ttf */
-.controls button, 
-#fileInputLabel, 
-.info p, 
-#status, 
-#bpmDisplay, 
-#loopRangeDisplay {
-    font-family: 'DATA', monospace;
-    letter-spacing: 0.5px;
-}
-
-button, #fileInputLabel {
-    background-color: var(--terminal-black);
-    color: var(--terminal-green);
-    border: 2px solid var(--terminal-green);
-    padding: 8px 10px;
-    font-size: 14px; /* Data fonts usually look better smaller and sharper */
-    cursor: pointer;
-}
-
-.info strong {
-    color: #FFFF00; /* Yellow highlight for the BPM result */
-    font-weight: normal; 
-} 
-
-    
-    font-family: 'NIN';
-    /* Ensure nin.ttf is in the same directory as this HTML file */
-    src: url('nin.ttf') format('truetype'), local('Courier New'), monospace;
-    font-display: swap;
-}
-
-body {
-    font-family: 'NIN', 'TerminalFont', monospace;
-    background-color: var(--terminal-black);
-    color: var(--terminal-green);
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    text-shadow: 0 0 2px var(--terminal-green);
-    /* Improves readability for blocky/pixel fonts */
-    image-rendering: pixelated;
-    font-smooth: never;
-    -webkit-font-smoothing: none;
-}
-
-.container {
-    width: 100%;
-    max-width: 800px;
-    background-color: var(--terminal-black);
-    border: 2px solid var(--terminal-green);
-    padding: 15px;
-    box-shadow: 0 0 5px var(--terminal-green);
-}
-
-#custom-header {
-    font-family: 'NIN', monospace;
-    text-align: left;
-    margin-bottom: 20px;
-    font-size: 2.2em; /* nin.ttf often looks better slightly larger */
-    line-height: 1.1;
-    padding-bottom: 5px;
-    border-bottom: 1px solid var(--terminal-green);
-    letter-spacing: 1px;
-}
-
-button, #fileInputLabel {
-    font-family: 'NIN', monospace;
-    background-color: var(--terminal-black);
-    color: var(--terminal-green);
-    border: 2px solid var(--terminal-green);
-    padding: 10px 12px;
-    text-align: center;
-    font-size: 18px; /* Adjusted for NIN legibility */
-    cursor: pointer;
-    text-transform: uppercase;
-}
-/* ... rest of your interactive styles remain the same ... */
-        /* Define the terminal font (monospace fallback is critical) */
+        /* --- FONT REGISTRY --- */
         @font-face {
-            font-family: 'TerminalFont';
-            src: local('Courier New'), local('Courier'), monospace;
+            font-family: 'NIN';
+            src: url('nin.ttf') format('truetype'), local('Impact'), sans-serif;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'DATA';
+            src: url('data.ttf') format('truetype'), local('Courier New'), monospace;
+            font-display: swap;
         }
 
-        /* --- TERMINAL UI STYLES --- */
         :root {
-            --terminal-green: #00FF41; /* Bright Neon Green */
+            --terminal-green: #00FF41; 
             --terminal-black: #000000;
+            --accent-cyan: #00FFFF;
+            --accent-magenta: #FF00FF;
+            --accent-yellow: #FFFF00;
         }
 
+        /* --- GLOBAL UI --- */
         body {
-            font-family: 'TerminalFont', monospace;
+            font-family: 'DATA', monospace;
             background-color: var(--terminal-black);
             color: var(--terminal-green);
-            padding: 10px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            text-shadow: 0 0 2px var(--terminal-green); /* CRT Glow Effect */
+            margin: 0;
+            text-shadow: 0 0 2px var(--terminal-green);
+            -webkit-font-smoothing: none;
         }
+
         .container {
-            width: 100%;
-            max-width: 800px;
+            width: 95vw;
+            max-width: 900px;
             background-color: var(--terminal-black);
-            border: 2px solid var(--terminal-green); /* Blocky border */
-            padding: 15px;
-            box-shadow: 0 0 5px var(--terminal-green);
-        }
-        
-        /* --- CUSTOM TITLE HEADER --- */
-        #custom-header {
-            text-align: left;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-            line-height: 1.2;
-            padding-bottom: 5px;
-            border-bottom: 1px solid var(--terminal-green);
-        }
-        #blinking-cursor {
-            color: var(--terminal-green);
-            animation: blink 1s step-end infinite;
-            font-weight: bold;
-        }
-        @keyframes blink {
-            from, to { visibility: visible; }
-            50% { visibility: hidden; }
-        }
-
-        /* --- INTERACTIVE ELEMENTS --- */
-
-        .controls, .info {
-            padding: 10px 0;
-            border: none;
-            border-top: 1px solid var(--terminal-green);
-            margin-bottom: 10px;
-        }
-        
-        button, #fileInputLabel {
-            font-family: 'TerminalFont', monospace;
-            background-color: var(--terminal-black);
-            color: var(--terminal-green);
             border: 2px solid var(--terminal-green);
-            padding: 8px 10px;
-            text-align: center;
-            font-size: 16px;
-            cursor: pointer;
-            box-shadow: 0 0 1px var(--terminal-green);
-            transition: background-color 0.1s;
-        }
-        
-        button:hover, #fileInputLabel:hover {
-            background-color: var(--terminal-green);
-            color: var(--terminal-black);
-        }
-        
-        button[disabled] {
-            color: #444;
-            border-color: #444;
-            cursor: not-allowed;
-            box-shadow: none;
-            background-color: var(--terminal-black);
-            opacity: 0.6;
-        }
-        
-        /* THIS IS THE CRUCIAL FIX: Hide the default browser file input element entirely */
-        #loadSampleInput {
-            display: none;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
         }
 
-        /* Control Layout for Mobile */
+        /* Branding Header */
+        #custom-header {
+            font-family: 'NIN', sans-serif;
+            text-align: left;
+            margin-bottom: 25px;
+            font-size: 2.4em;
+            line-height: 1;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--terminal-green);
+            letter-spacing: 2px;
+        }
+
+        #blinking-cursor {
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink { from, to { visibility: visible; } 50% { visibility: hidden; } }
+
+        /* Controls Area */
         .controls {
             display: flex;
             flex-wrap: wrap;
-            justify-content: space-around;
-            gap: 8px;
-        }
-        button, #fileInputLabel {
-            flex-grow: 1;
-            min-width: 45%; 
-        }
-        
-        /* --- INFO DISPLAY --- */
-        .info p {
-            margin: 3px 0;
-            white-space: pre-wrap;
-        }
-        .info strong {
-            color: #FFFF00;
+            gap: 12px;
+            margin-bottom: 20px;
         }
 
-        /* --- CANVAS --- */
-        #waveformCanvas {
-            width: 100%; 
-            height: 120px;
+        button, #fileInputLabel {
+            font-family: 'DATA', monospace;
             background-color: var(--terminal-black);
-            border: 1px solid var(--terminal-green);
-            margin-top: 10px;
-            touch-action: none; 
+            color: var(--terminal-green);
+            border: 2px solid var(--terminal-green);
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            text-transform: uppercase;
+            flex-grow: 1;
+            text-align: center;
         }
-        
-        /* Desktop Adjustments */
-        @media (min-width: 600px) {
-            .controls {
-                flex-wrap: nowrap;
-                gap: 15px;
-            }
-            button, #fileInputLabel {
-                min-width: auto;
-            }
+
+        button:hover:not(:disabled), #fileInputLabel:hover {
+            background-color: var(--terminal-green);
+            color: var(--terminal-black);
+        }
+
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: #333;
+        }
+
+        #loadSampleInput { display: none; }
+
+        /* Data Readouts */
+        .info {
+            background: #080808;
+            padding: 15px;
+            border: 1px inset #222;
+            margin-bottom: 15px;
+        }
+        .info p {
+            margin: 5px 0;
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+        .info strong { color: var(--accent-yellow); font-weight: normal; }
+
+        /* Visualizer */
+        #waveformCanvas {
+            width: 100%;
+            height: 150px;
+            background-color: #050505;
+            border: 1px solid #1a1a1a;
+            cursor: crosshair;
+            touch-action: none;
         }
     </style>
 </head>
@@ -282,471 +127,193 @@ button, #fileInputLabel {
 
 <div class="container">
     <div id="custom-header">
-        NEXUS OPEN STANDARDS RESEARCH GROUP <br>
-        LAZER BLADE 3 <span id="blinking-cursor">_.</span>
+        NEXUS_OSR_GROUP // LAZER_BLADE_3<span id="blinking-cursor">_</span>
     </div>
 
     <div class="controls">
-        <label id="fileInputLabel" for="loadSampleInput">[ LOAD SAMPLE ]</label>
-        <input type="file" id="loadSampleInput" accept="audio/*, audio/mpeg, audio/wav, audio/ogg">
-        <button id="loadSampleButton" disabled>[ PLAY / LOOP ]</button>
-        <button id="trimLoopButton" disabled>[ TRIM BPM ]</button>
-        <button id="exportTrimButton" disabled>[ EXPORT WAV ]</button>
+        <label id="fileInputLabel" for="loadSampleInput">[ LOAD_RAW_ASSET ]</label>
+        <input type="file" id="loadSampleInput" accept="audio/*">
+        
+        <button id="loadSampleButton" disabled>[ PLAY_LOOP ]</button>
+        <button id="trimLoopButton" disabled>[ LOCK_BPM ]</button>
+        <button id="exportTrimButton" disabled>[ EXPORT_WAV ]</button>
     </div>
 
     <div class="info">
-        <p>STATUS: <span id="status">INITIATING PROTOCOL. LOAD FILE TO BEGIN.</span></p>
-        <p>BPM_ANALYSIS: <span id="bpmDisplay">---</span></p>
-        <p>LOOP_WINDOW: <span id="loopRangeDisplay">0.00s T0 0.00s</span></p>
+        <p>SYSTEM_STATUS: <span id="status">WAITING FOR ASSET INGESTION...</span></p>
+        <p>BPM_ESTIMATE: <span id="bpmDisplay">---</span></p>
+        <p>WINDOW: <span id="loopRangeDisplay">0.000s >> 0.000s</span></p>
     </div>
 
     <canvas id="waveformCanvas"></canvas>
 </div>
 
 <script>
-    // --- GLOBAL STATE ---
-    let audioContext;
-    let audioBuffer;
-    let sourceNode = null; 
-    let playbackStartTime = 0; 
-    let animationFrameId;
+    let audioCtx, audioBuf, sourceNode = null;
+    let playbackStartTime = 0, aniFrame = null;
+    let loopStart = 0, loopEnd = 0;
+    let isPlaying = false, isDragging = false, dragTarget = null;
 
     const canvas = document.getElementById('waveformCanvas');
     const ctx = canvas.getContext('2d');
-    const statusDisplay = document.getElementById('status');
-    const bpmDisplay = document.getElementById('bpmDisplay');
-    const loopRangeDisplay = document.getElementById('loopRangeDisplay');
-    const loadSampleInput = document.getElementById('loadSampleInput');
+    const status = document.getElementById('status');
+    const bpmDisp = document.getElementById('bpmDisplay');
+    const loopDisp = document.getElementById('loopRangeDisplay');
+    const input = document.getElementById('loadSampleInput');
 
-    const loadSampleButton = document.getElementById('loadSampleButton');
-    const trimLoopButton = document.getElementById('trimLoopButton');
-    const exportTrimButton = document.getElementById('exportTrimButton');
-    
-    let loopStartSeconds = 0;
-    let loopEndSeconds = 0;
-    let isPlaying = false;
-    let isDragging = false;
-    let dragTarget = null; 
+    const btns = [
+        document.getElementById('loadSampleButton'),
+        document.getElementById('trimLoopButton'),
+        document.getElementById('exportTrimButton')
+    ];
 
-    // --- CONSTANTS ---
-    const LINE_WIDTH = 4;
-    const START_COLOR = '#00FFFF'; 
-    const END_COLOR = '#FF00FF';  
-    const HEAD_COLOR = '#FFFF00'; 
-    const WAVEFORM_COLOR = '#00FF41';
-    const DRAG_TOLERANCE = 25; 
-
-    // --- UTILITY FUNCTIONS ---
-
-    function getMousePos(canvas, event) {
-        const rect = canvas.getBoundingClientRect();
-        const dpi = window.devicePixelRatio || 1;
-        const x = (event.clientX - rect.left) / (rect.width / canvas.clientWidth); 
-        const y = (event.clientY - rect.top) / (rect.height / canvas.clientHeight);
-        return { x, y };
-    }
-
-    function pixelToTime(x) {
-        return (x / canvas.clientWidth) * audioBuffer.duration;
-    }
-
-    function timeToPixel(time) {
-        return (time / audioBuffer.duration) * canvas.clientWidth;
-    }
-
-    function updateRangeDisplay() {
-        loopRangeDisplay.textContent = `${loopStartSeconds.toFixed(3)}s T0 ${loopEndSeconds.toFixed(3)}s (DUR: ${(loopEndSeconds - loopStartSeconds).toFixed(3)}s)`;
-    }
-
-    // --- AUDIO CONTEXT & LOADING ---
-
-    function initAudioContext() {
-        if (!audioContext) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
-    }
-
-    loadSampleInput.onchange = async (event) => {
-        const file = event.target.files[0];
+    // --- Audio Logic ---
+    async function handleFile(e) {
+        const file = e.target.files[0];
         if (!file) return;
-
-        stopPlayback();
-        initAudioContext();
-        statusDisplay.textContent = 'DECODING AUDIO SAMPLE...';
-
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        status.textContent = 'DECODING_DATA...';
         try {
-            const arrayBuffer = await file.arrayBuffer();
-            audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-            
-            loopStartSeconds = 0;
-            loopEndSeconds = audioBuffer.duration;
-            
-            statusDisplay.textContent = `FILE LOADED: ${file.name}. DUR: ${audioBuffer.duration.toFixed(2)}s`;
-            
-            loadSampleButton.disabled = false;
-            trimLoopButton.disabled = false;
-            exportTrimButton.disabled = false;
-
-            drawWaveform();
-            guessBPM(audioBuffer.duration);
-            updateRangeDisplay();
-
-        } catch (error) {
-            console.error('ERROR:', error);
-            statusDisplay.textContent = 'ERROR: FAILED TO DECODE AUDIO FILE.';
-            audioBuffer = null;
+            const ab = await file.arrayBuffer();
+            audioBuf = await audioCtx.decodeAudioData(ab);
+            loopStart = 0;
+            loopEnd = audioBuf.duration;
+            status.textContent = `READY: ${file.name.toUpperCase()}`;
+            btns.forEach(b => b.disabled = false);
+            updateUI();
+            draw();
+        } catch (err) {
+            status.textContent = 'DECODE_ERROR_CRITICAL';
         }
-    };
-
-    // --- PLAYBACK AND LOOPING (INCLUDES BUG FIX) ---
-
-    function startPlayback() {
-        if (!audioBuffer || isPlaying) return;
-
-        if (audioContext.state === 'suspended') {
-            audioContext.resume();
-        }
-
-        sourceNode = audioContext.createBufferSource();
-        sourceNode.buffer = audioBuffer;
-        sourceNode.connect(audioContext.destination);
-
-        sourceNode.loop = true; 
-        sourceNode.loopStart = loopStartSeconds; 
-        sourceNode.loopEnd = loopEndSeconds; 
-        
-        sourceNode.start(0, loopStartSeconds); 
-        
-        playbackStartTime = audioContext.currentTime;
-        isPlaying = true;
-        loadSampleButton.textContent = "[ STOP PLAYBACK ]";
-
-        requestAnimationFrame(updatePlaybackHead);
     }
 
-    function stopPlayback() {
-        if (!isPlaying || !sourceNode) return;
-        
-        try {
-            sourceNode.stop();
-        } catch (e) {
-            // May throw error if source already stopped, ignore
-        }
-
-        sourceNode.onended = null;
-        sourceNode = null;
-        isPlaying = false;
-        loadSampleButton.textContent = "[ PLAY / LOOP ]";
-
-        cancelAnimationFrame(animationFrameId);
-        drawWaveform();
-    }
-
-    loadSampleButton.onclick = () => {
+    function togglePlay() {
         if (isPlaying) {
-            stopPlayback();
+            if (sourceNode) { sourceNode.stop(); sourceNode = null; }
+            isPlaying = false;
+            btns[0].textContent = "[ PLAY_LOOP ]";
+            cancelAnimationFrame(aniFrame);
+            draw();
         } else {
-            startPlayback();
+            sourceNode = audioCtx.createBufferSource();
+            sourceNode.buffer = audioBuf;
+            sourceNode.loop = true;
+            sourceNode.loopStart = loopStart;
+            sourceNode.loopEnd = loopEnd;
+            sourceNode.connect(audioCtx.destination);
+            sourceNode.start(0, loopStart);
+            playbackStartTime = audioCtx.currentTime;
+            isPlaying = true;
+            btns[0].textContent = "[ STOP_ENGINE ]";
+            renderLoop();
         }
+    }
+
+    // --- Visuals ---
+    function draw(now = null) {
+        const w = canvas.width, h = canvas.height;
+        ctx.fillStyle = '#050505'; ctx.fillRect(0,0,w,h);
+        if (!audioBuf) return;
+
+        const data = audioBuf.getChannelData(0);
+        const step = Math.ceil(data.length / w);
+        ctx.strokeStyle = '#00FF41'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        for(let i=0; i<w; i++) {
+            let min=1, max=-1;
+            for(let j=0; j<step; j++) {
+                const s = data[i*step+j];
+                if(s<min) min=s; if(s>max) max=s;
+            }
+            ctx.moveTo(i, (1+min)*h/2); ctx.lineTo(i, (1+max)*h/2);
+        }
+        ctx.stroke();
+
+        // Markers
+        const sX = (loopStart/audioBuf.duration)*w;
+        const eX = (loopEnd/audioBuf.duration)*w;
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#00FFFF'; ctx.strokeRect(sX, 0, 1, h);
+        ctx.strokeStyle = '#FF00FF'; ctx.strokeRect(eX, 0, 1, h);
+
+        if (now !== null) {
+            const pX = (now/audioBuf.duration)*w;
+            ctx.strokeStyle = '#FFFF00'; ctx.strokeRect(pX, 0, 2, h);
+        }
+    }
+
+    function renderLoop() {
+        if (!isPlaying) return;
+        let playTime = loopStart + (audioCtx.currentTime - playbackStartTime) % (loopEnd - loopStart);
+        draw(playTime);
+        aniFrame = requestAnimationFrame(renderLoop);
+    }
+
+    function updateUI() {
+        const dur = loopEnd - loopStart;
+        loopDisp.textContent = `${loopStart.toFixed(3)}s >> ${loopEnd.toFixed(3)}s (LEN: ${dur.toFixed(3)}s)`;
+        const bpm = 60 / (dur / 4);
+        bpmDisp.innerHTML = `1_BAR: <strong>${bpm.toFixed(1)}</strong> | 2_BAR: <strong>${(bpm/2).toFixed(1)}</strong>`;
+    }
+
+    // --- Interaction ---
+    canvas.onmousedown = (e) => {
+        if (!audioBuf) return;
+        const x = (e.offsetX / canvas.clientWidth) * audioBuf.duration;
+        if (Math.abs(x - loopStart) < 0.2) dragTarget = 'start';
+        else if (Math.abs(x - loopEnd) < 0.2) dragTarget = 'end';
+        if (dragTarget) { isDragging = true; if(isPlaying) togglePlay(); }
     };
-
-    // --- VISUALIZATION (TERMINAL STYLE) ---
-    
-    function drawWaveform(currentTime = null) {
-        const width = canvas.clientWidth; 
-        const height = canvas.clientHeight;
-        const dpi = window.devicePixelRatio || 1;
-        
-        ctx.clearRect(0, 0, width * dpi, height * dpi);
-        ctx.fillStyle = '#000000'; 
-        ctx.fillRect(0, 0, width, height); 
-        
-        if (!audioBuffer) return;
-
-        const data = audioBuffer.getChannelData(0);
-        const step = Math.ceil(data.length / width);
-        const amp = height / 2;
-
-        ctx.strokeStyle = WAVEFORM_COLOR; 
-        ctx.lineWidth = 1.5; 
-        ctx.beginPath();
-        for (let i = 0; i < width; i++) {
-            let sumOfSquares = 0;
-            const startIndex = i * step;
-
-            for (let j = 0; j < step; j++) {
-                sumOfSquares += data[startIndex + j] * data[startIndex + j];
-            }
-            const rms = Math.sqrt(sumOfSquares / step); 
-
-            ctx.lineTo(i, amp - rms * amp);
-            ctx.lineTo(i, amp + rms * amp);
-        }
-        ctx.stroke();
-        
-        ctx.strokeStyle = '#222'; 
-        ctx.lineWidth = 0.5;
-        ctx.beginPath();
-        ctx.moveTo(0, amp);
-        ctx.lineTo(width, amp);
-        ctx.stroke();
-        
-        const startX = timeToPixel(loopStartSeconds);
-        const endX = timeToPixel(loopEndSeconds);
-
-        ctx.strokeStyle = START_COLOR;
-        ctx.lineWidth = LINE_WIDTH;
-        ctx.beginPath();
-        ctx.moveTo(startX, 0);
-        ctx.lineTo(startX, height);
-        ctx.stroke();
-
-        ctx.strokeStyle = END_COLOR;
-        ctx.lineWidth = LINE_WIDTH;
-        ctx.beginPath();
-        ctx.moveTo(endX, 0);
-        ctx.lineTo(endX, height);
-        ctx.stroke();
-
-        if (currentTime !== null) {
-            const headX = timeToPixel(currentTime);
-            ctx.strokeStyle = HEAD_COLOR;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(headX, 0);
-            ctx.lineTo(headX, height);
-            ctx.stroke();
-        }
-    }
-
-    function updatePlaybackHead() {
-        if (isPlaying && audioContext && sourceNode) {
-            const timeSinceStart = audioContext.currentTime - playbackStartTime;
-            
-            let currentBufferTime = loopStartSeconds + timeSinceStart;
-            const loopDuration = loopEndSeconds - loopStartSeconds;
-
-            if (loopDuration > 0 && currentBufferTime >= loopEndSeconds) {
-                 currentBufferTime = loopStartSeconds + (timeSinceStart % loopDuration);
-            }
-
-            drawWaveform(currentBufferTime);
-            animationFrameId = requestAnimationFrame(updatePlaybackHead);
-        }
-    }
-
-    // --- INTERACTIVITY (DRAGGING) ---
-
-    canvas.addEventListener('mousedown', startDrag);
-    canvas.addEventListener('touchstart', startDrag);
-    window.addEventListener('mousemove', drag); 
-    window.addEventListener('touchmove', drag);
-    window.addEventListener('mouseup', endDrag);
-    window.addEventListener('touchend', endDrag);
-
-    function startDrag(e) {
-        if (!audioBuffer) return;
-        
-        const event = e.touches ? e.touches[0] : e;
-        const rect = canvas.getBoundingClientRect();
-        
-        if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) {
-            return;
-        }
-        
-        e.preventDefault();
-        
-        const { x } = getMousePos(canvas, event);
-
-        const startX = timeToPixel(loopStartSeconds);
-        const endX = timeToPixel(loopEndSeconds);
-        
-        if (Math.abs(x - startX) < DRAG_TOLERANCE) {
-            isDragging = true;
-            dragTarget = 'start';
-        } else if (Math.abs(x - endX) < DRAG_TOLERANCE) {
-            isDragging = true;
-            dragTarget = 'end';
-        }
-
-        if (isDragging) {
-            if (isPlaying) stopPlayback();
-            canvas.style.cursor = 'crosshair'; 
-        }
-    }
-
-    function drag(e) {
-        if (!isDragging || !audioBuffer) return;
-        e.preventDefault();
-
-        const event = e.touches ? e.touches[0] : e;
-        const canvasRect = canvas.getBoundingClientRect();
-        const canvasCSSWidth = canvas.clientWidth;
-        
-        let x = event.clientX - canvasRect.left;
-        x = Math.max(0, Math.min(canvasCSSWidth, x));
-        
-        let newTime = pixelToTime(x);
-        newTime = Math.max(0, Math.min(audioBuffer.duration, newTime));
-        
-        if (dragTarget === 'start') {
-            loopStartSeconds = Math.min(newTime, loopEndSeconds);
-        } else if (dragTarget === 'end') {
-            loopEndSeconds = Math.max(newTime, loopStartSeconds);
-        }
-
-        updateRangeDisplay();
-        drawWaveform();
-    }
-
-    function endDrag() {
+    window.onmousemove = (e) => {
         if (!isDragging) return;
-        isDragging = false;
-        dragTarget = null;
-        canvas.style.cursor = 'default';
+        const rect = canvas.getBoundingClientRect();
+        let x = ((e.clientX - rect.left) / canvas.clientWidth) * audioBuf.duration;
+        x = Math.max(0, Math.min(audioBuf.duration, x));
+        if (dragTarget === 'start') loopStart = Math.min(x, loopEnd - 0.01);
+        else loopEnd = Math.max(x, loopStart + 0.01);
+        updateUI(); draw();
+    };
+    window.onmouseup = () => { isDragging = false; dragTarget = null; };
 
-        guessBPM(loopEndSeconds - loopStartSeconds);
-    }
-
-    // --- BPM & TRIM ---
-
-    function guessBPM(durationSeconds, isTrim = false) {
-        if (durationSeconds <= 0) {
-            bpmDisplay.innerHTML = '---';
-            return;
+    // --- Export Logic ---
+    document.getElementById('exportTrimButton').onclick = () => {
+        const startSmp = Math.floor(loopStart * audioBuf.sampleRate);
+        const endSmp = Math.floor(loopEnd * audioBuf.sampleRate);
+        const newBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, endSmp - startSmp, audioBuf.sampleRate);
+        for(let c=0; c<audioBuf.numberOfChannels; c++) {
+            newBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(startSmp, endSmp));
         }
-
-        const durationMinutes = durationSeconds / 60;
-
-        const bpm1 = (4 / durationMinutes);
-        const bpm2 = (8 / durationMinutes);
-        const bpm4 = (16 / durationMinutes);
-
-        let output = '';
-        if (isTrim) {
-            output = `TRIM_DUR:${durationSeconds.toFixed(2)}s | ASSUMED 1-BAR: <strong>${bpm1.toFixed(1)} BPM</strong>`;
-        } else {
-            output = `OPT_1BAR=${bpm1.toFixed(1)} BPM | OPT_2BARS=${bpm2.toFixed(1)} BPM | OPT_4BARS=${bpm4.toFixed(1)} BPM`;
-        }
-
-        bpmDisplay.innerHTML = output;
-    }
-
-    trimLoopButton.onclick = () => {
-        if (!audioBuffer) return;
-        stopPlayback();
-
-        const segmentDuration = loopEndSeconds - loopStartSeconds;
-        guessBPM(segmentDuration, true);
-        
-        statusDisplay.textContent = `LOOP SEGMENT CONFIRMED. BPM RECALCULATED.`;
+        const wav = encodeWAV(newBuf);
+        const a = document.createElement('a'); 
+        a.href = URL.createObjectURL(new Blob([wav], {type:'audio/wav'}));
+        a.download = `LB3_CHOP_${Date.now()}.wav`; a.click();
     };
 
-
-    // --- EXPORT (WAV ENCODING) ---
-    exportTrimButton.onclick = async () => {
-        if (!audioBuffer) return;
-        stopPlayback();
-
-        statusDisplay.textContent = 'INITIATING WAV ENCODE AND EXPORT...';
-        
-        const startSample = Math.floor(loopStartSeconds * audioBuffer.sampleRate);
-        const endSample = Math.floor(loopEndSeconds * audioBuffer.sampleRate);
-        const frameCount = endSample - startSample;
-
-        if (frameCount <= 0) {
-             statusDisplay.textContent = 'ERROR: INVALID LOOP POINTS.';
-             return;
-        }
-
-        const newBuffer = audioContext.createBuffer(
-            audioBuffer.numberOfChannels,
-            frameCount,
-            audioBuffer.sampleRate
-        );
-
-        for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
-            const oldData = audioBuffer.getChannelData(i);
-            newBuffer.getChannelData(i).set(oldData.subarray(startSample, endSample));
-        }
-        
-        const wavArrayBuffer = encodeWAV(newBuffer);
-        
-        const blob = new Blob([wavArrayBuffer], { type: 'audio/wav' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `LAZER_BLADE_3_TRIM_${new Date().toISOString().slice(0, 10)}.wav`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        statusDisplay.textContent = 'EXPORT SUCCESSFUL. WAV FILE CREATED.';
-    };
-
-    function writeString(view, offset, str) {
-        for (let i = 0; i < str.length; i++) {
-            view.setUint8(offset + i, str.charCodeAt(i));
-        }
-    }
-
-    function encodeWAV(audioBuffer) {
-        const numChannels = audioBuffer.numberOfChannels;
-        const sampleRate = audioBuffer.sampleRate;
-        const frameCount = audioBuffer.length;
-        const BYTES_PER_SAMPLE = 2; 
-
-        const buffer = new ArrayBuffer(44 + frameCount * numChannels * BYTES_PER_SAMPLE);
-        const view = new DataView(buffer);
-        let offset = 0;
-
-        writeString(view, offset, 'RIFF'); offset += 4;
-        view.setUint32(offset, 36 + frameCount * numChannels * BYTES_PER_SAMPLE, true); offset += 4;
-        writeString(view, offset, 'WAVE'); offset += 4;
-
-        writeString(view, offset, 'fmt '); offset += 4;
-        view.setUint32(offset, 16, true); offset += 4;
-        view.setUint16(offset, 1, true); offset += 2;
-        view.setUint16(offset, numChannels, true); offset += 2;
-        view.setUint32(offset, sampleRate, true); offset += 4;
-        view.setUint32(offset, sampleRate * numChannels * BYTES_PER_SAMPLE, true); offset += 4;
-        view.setUint16(offset, numChannels * BYTES_PER_SAMPLE, true); offset += 2;
-        view.setUint16(offset, 8 * BYTES_PER_SAMPLE, true); offset += 2;
-
-        writeString(view, offset, 'data'); offset += 4;
-        view.setUint32(offset, frameCount * numChannels * BYTES_PER_SAMPLE, true); offset += 4;
-
-        for (let i = 0; i < frameCount; i++) {
-            for (let j = 0; j < numChannels; j++) {
-                const sample = audioBuffer.getChannelData(j)[i];
-                const intSample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
-                view.setInt16(offset, intSample, true);
-                offset += BYTES_PER_SAMPLE;
+    function encodeWAV(buf) {
+        let n=buf.numberOfChannels, sr=buf.sampleRate, len=buf.length*n*2+44, ab=new ArrayBuffer(len), view=new DataView(ab), pos=0;
+        const s = (str) => { for(let i=0; i<str.length; i++) view.setUint8(pos++, str.charCodeAt(i)); };
+        s('RIFF'); view.setUint32(pos, len-8, true); pos+=4; s('WAVEfmt '); view.setUint32(pos, 16, true); pos+=4;
+        view.setUint16(pos, 1, true); pos+=2; view.setUint16(pos, n, true); pos+=2; view.setUint32(pos, sr, true); pos+=4;
+        view.setUint32(pos, sr*n*2, true); pos+=4; view.setUint16(pos, n*2, true); pos+=2; view.setUint16(pos, 16, true); pos+=2;
+        s('data'); view.setUint32(pos, len-pos-4, true); pos+=4;
+        for(let i=0; i<buf.length; i++) {
+            for(let c=0; c<n; c++) {
+                let v = Math.max(-1, Math.min(1, buf.getChannelData(c)[i]));
+                view.setInt16(pos, v<0?v*0x8000:v*0x7FFF, true); pos+=2;
             }
         }
-        return buffer;
+        return ab;
     }
 
-    // --- INITIALIZATION ---
+    input.onchange = handleFile;
+    btns[0].onclick = togglePlay;
+    btns[1].onclick = () => status.textContent = "BPM_LOCKED_FOR_EXPORT";
 
-    function setupCanvas() {
-        const dpi = window.devicePixelRatio || 1;
-        const style_width = +getComputedStyle(canvas).getPropertyValue("width").slice(0, -2);
-        const style_height = +getComputedStyle(canvas).getPropertyValue("height").slice(0, -2);
-        
-        canvas.width = style_width * dpi;
-        canvas.height = style_height * dpi;
-        
-        ctx.scale(dpi, dpi);
-    }
-    
-    window.onload = setupCanvas;
-    window.onresize = () => {
-        setupCanvas();
-        if (audioBuffer) drawWaveform(); 
+    window.onload = () => {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+        draw();
     };
-
 </script>
-</body>
-</html>
+</body></html>
