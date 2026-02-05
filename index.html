@@ -1,150 +1,65 @@
 <!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LAZER BLADE 3 - Sample Editor</title>
+    <title>LAZER BLADE 3 - Stable Engine</title>
     <style>
-        /* --- FONT REGISTRY --- */
-        @font-face {
-            font-family: 'NIN';
-            src: url('nin.ttf') format('truetype'), local('Impact'), sans-serif;
-            font-display: swap;
-        }
-        @font-face {
-            font-family: 'DATA';
-            src: url('data.ttf') format('truetype'), local('Courier New'), monospace;
-            font-display: swap;
-        }
+        @font-face { font-family: 'NIN'; src: url('nin.ttf') format('truetype'), local('Impact'), sans-serif; font-display: swap; }
+        @font-face { font-family: 'DATA'; src: url('data.ttf') format('truetype'), local('Courier New'), monospace; font-display: swap; }
 
-        :root {
-            --terminal-green: #00FF41; 
-            --terminal-black: #000000;
-            --accent-cyan: #00FFFF;
-            --accent-magenta: #FF00FF;
-            --accent-yellow: #FFFF00;
-        }
+        :root { --terminal-green: #00FF41; --terminal-black: #000000; --accent-cyan: #00FFFF; --accent-magenta: #FF00FF; --accent-yellow: #FFFF00; }
 
-        /* --- GLOBAL UI --- */
         body {
-            font-family: 'DATA', monospace;
-            background-color: var(--terminal-black);
-            color: var(--terminal-green);
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            text-shadow: 0 0 2px var(--terminal-green);
-            -webkit-font-smoothing: none;
+            font-family: 'DATA', monospace; background-color: var(--terminal-black); color: var(--terminal-green);
+            padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0;
+            text-shadow: 0 0 2px var(--terminal-green); -webkit-font-smoothing: none; overflow-x: hidden;
         }
 
-        .container {
-            width: 95vw;
-            max-width: 900px;
-            background-color: var(--terminal-black);
-            border: 2px solid var(--terminal-green);
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
-        }
+        .container { width: 95vw; max-width: 900px; background-color: var(--terminal-black); border: 2px solid var(--terminal-green); padding: 20px; box-shadow: 0 0 15px rgba(0, 255, 65, 0.3); }
 
-        /* Branding Header */
-        #custom-header {
-            font-family: 'NIN', sans-serif;
-            text-align: left;
-            margin-bottom: 25px;
-            font-size: 2.4em;
-            line-height: 1;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--terminal-green);
-            letter-spacing: 2px;
-        }
+        #custom-header { font-family: 'NIN', sans-serif; text-align: left; margin-bottom: 20px; font-size: 2.4em; line-height: 1; padding-bottom: 10px; border-bottom: 2px solid var(--terminal-green); letter-spacing: 2px; }
 
-        #blinking-cursor {
-            animation: blink 1s step-end infinite;
-        }
+        #blinking-cursor { animation: blink 1s step-end infinite; }
         @keyframes blink { from, to { visibility: visible; } 50% { visibility: hidden; } }
 
-        /* Controls Area */
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
+        .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
 
         button, #fileInputLabel {
-            font-family: 'DATA', monospace;
-            background-color: var(--terminal-black);
-            color: var(--terminal-green);
-            border: 2px solid var(--terminal-green);
-            padding: 10px 15px;
-            font-size: 14px;
-            cursor: pointer;
-            text-transform: uppercase;
-            flex-grow: 1;
-            text-align: center;
+            font-family: 'DATA', monospace; background-color: var(--terminal-black); color: var(--terminal-green);
+            border: 2px solid var(--terminal-green); padding: 10px; font-size: 13px; cursor: pointer;
+            text-transform: uppercase; flex: 1; min-width: 120px; text-align: center;
         }
 
-        button:hover:not(:disabled), #fileInputLabel:hover {
-            background-color: var(--terminal-green);
-            color: var(--terminal-black);
-        }
-
-        button:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-            border-color: #333;
-        }
-
+        button:hover:not(:disabled), #fileInputLabel:hover { background-color: var(--terminal-green); color: var(--terminal-black); }
+        button:disabled { opacity: 0.2; cursor: not-allowed; border-color: #333; }
         #loadSampleInput { display: none; }
 
-        /* Data Readouts */
-        .info {
-            background: #080808;
-            padding: 15px;
-            border: 1px inset #222;
-            margin-bottom: 15px;
-        }
-        .info p {
-            margin: 5px 0;
-            font-size: 13px;
-            letter-spacing: 1px;
-        }
+        .info { background: #050505; padding: 12px; border: 1px inset #222; margin-bottom: 10px; font-size: 12px; }
         .info strong { color: var(--accent-yellow); font-weight: normal; }
 
-        /* Visualizer */
+        .nav-help { font-size: 9px; color: var(--accent-cyan); margin-bottom: 5px; text-align: right; width: 100%; }
+
         #waveformCanvas {
-            width: 100%;
-            height: 150px;
-            background-color: #050505;
-            border: 1px solid #1a1a1a;
-            cursor: crosshair;
-            touch-action: none;
+            width: 100%; height: 250px; background-color: #020202; border: 1px solid #1a1a1a;
+            cursor: crosshair; touch-action: none;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="custom-header">
-        NEXUS_OSR_GROUP // LAZER_BLADE_3<span id="blinking-cursor">_</span>
-    </div>
-
+    <div id="custom-header">NEXUS_OSR // LAZER_BLADE_3<span id="blinking-cursor">_</span></div>
     <div class="controls">
-        <label id="fileInputLabel" for="loadSampleInput">[ LOAD_RAW_ASSET ]</label>
+        <label id="fileInputLabel" for="loadSampleInput">[ INGEST_FILE ]</label>
         <input type="file" id="loadSampleInput" accept="audio/*">
-        
         <button id="loadSampleButton" disabled>[ PLAY_LOOP ]</button>
-        <button id="trimLoopButton" disabled>[ LOCK_BPM ]</button>
         <button id="exportTrimButton" disabled>[ EXPORT_WAV ]</button>
     </div>
-
     <div class="info">
-        <p>SYSTEM_STATUS: <span id="status">WAITING FOR ASSET INGESTION...</span></p>
-        <p>BPM_ESTIMATE: <span id="bpmDisplay">---</span></p>
-        <p>WINDOW: <span id="loopRangeDisplay">0.000s >> 0.000s</span></p>
+        <div>STATUS: <span id="status">IDLE // STANDBY</span></div>
+        <div>WINDOW: <span id="loopRangeDisplay">0.000s >> 0.000s</span></div>
+        <div>ZOOM_MAG: <span id="zoomMag">1x</span> | AMP_BOOST: <span id="ampMag">1x</span></div>
     </div>
-
+    <div class="nav-help">CTRL+UP/DN: ZOOM AT CURSOR | SHIFT+UP/DN: AMP GAIN | SCROLL: PAN</div>
     <canvas id="waveformCanvas"></canvas>
 </div>
 
@@ -153,141 +68,210 @@
     let playbackStartTime = 0, aniFrame = null;
     let loopStart = 0, loopEnd = 0;
     let isPlaying = false, isDragging = false, dragTarget = null;
+    
+    let zoomH = 1, scrollPos = 0, ampZoom = 1, mouseX = 0;
 
     const canvas = document.getElementById('waveformCanvas');
     const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
-    const bpmDisp = document.getElementById('bpmDisplay');
     const loopDisp = document.getElementById('loopRangeDisplay');
+    const zoomMagDisp = document.getElementById('zoomMag');
+    const ampMagDisp = document.getElementById('ampMag');
     const input = document.getElementById('loadSampleInput');
+    const btnPlay = document.getElementById('loadSampleButton');
+    const btnExport = document.getElementById('exportTrimButton');
 
-    const btns = [
-        document.getElementById('loadSampleButton'),
-        document.getElementById('trimLoopButton'),
-        document.getElementById('exportTrimButton')
-    ];
-
-    // --- Audio Logic ---
     async function handleFile(e) {
         const file = e.target.files[0];
         if (!file) return;
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        status.textContent = 'DECODING_DATA...';
+        status.textContent = 'SCANNING_PEAKS...';
         try {
             const ab = await file.arrayBuffer();
             audioBuf = await audioCtx.decodeAudioData(ab);
-            loopStart = 0;
-            loopEnd = audioBuf.duration;
+            loopStart = 0; loopEnd = audioBuf.duration;
+            zoomH = 1; scrollPos = 0; ampZoom = 1;
             status.textContent = `READY: ${file.name.toUpperCase()}`;
-            btns.forEach(b => b.disabled = false);
-            updateUI();
-            draw();
-        } catch (err) {
-            status.textContent = 'DECODE_ERROR_CRITICAL';
-        }
+            btnPlay.disabled = false; btnExport.disabled = false;
+            updateUI(); draw();
+        } catch (err) { status.textContent = 'SCAN_FAILED'; }
     }
 
-    function togglePlay() {
-        if (isPlaying) {
-            if (sourceNode) { sourceNode.stop(); sourceNode = null; }
-            isPlaying = false;
-            btns[0].textContent = "[ PLAY_LOOP ]";
-            cancelAnimationFrame(aniFrame);
-            draw();
+    function findZeroCrossing(time) {
+        if (!audioBuf) return time;
+        const data = audioBuf.getChannelData(0);
+        const center = Math.floor(time * audioBuf.sampleRate);
+        const range = 512; 
+        let best = center, min = 1.0;
+        for (let i = center - range; i < center + range; i++) {
+            if (i >= 0 && i < data.length) {
+                if (Math.abs(data[i]) < min) { min = Math.abs(data[i]); best = i; }
+            }
+        }
+        return best / audioBuf.sampleRate;
+    }
+
+    function performZoom(delta) {
+        if (!audioBuf) return;
+        const dataLen = audioBuf.length;
+        const oldVisible = dataLen / zoomH;
+        const oldStart = scrollPos * (dataLen - oldVisible);
+        const focalTime = (oldStart + (mouseX / canvas.clientWidth) * oldVisible) / audioBuf.sampleRate;
+
+        if (delta > 0) zoomH *= 1.3; else zoomH /= 1.3;
+        
+        // Safety Clamp: Don't zoom out past 100% of the file
+        zoomH = Math.max(1, Math.min(40000, zoomH));
+
+        const newVisible = dataLen / zoomH;
+        const newStart = (focalTime * audioBuf.sampleRate) - (mouseX / canvas.clientWidth) * newVisible;
+        
+        // Safety Clamp: Don't scroll into the void
+        if (zoomH === 1) {
+            scrollPos = 0;
         } else {
-            sourceNode = audioCtx.createBufferSource();
-            sourceNode.buffer = audioBuf;
-            sourceNode.loop = true;
-            sourceNode.loopStart = loopStart;
-            sourceNode.loopEnd = loopEnd;
-            sourceNode.connect(audioCtx.destination);
-            sourceNode.start(0, loopStart);
-            playbackStartTime = audioCtx.currentTime;
-            isPlaying = true;
-            btns[0].textContent = "[ STOP_ENGINE ]";
-            renderLoop();
+            scrollPos = newStart / (dataLen - newVisible);
+            scrollPos = Math.max(0, Math.min(1, scrollPos));
         }
+        
+        updateUI(); draw();
     }
 
-    // --- Visuals ---
     function draw(now = null) {
         const w = canvas.width, h = canvas.height;
-        ctx.fillStyle = '#050505'; ctx.fillRect(0,0,w,h);
+        ctx.fillStyle = '#020202'; ctx.fillRect(0,0,w,h);
         if (!audioBuf) return;
 
         const data = audioBuf.getChannelData(0);
-        const step = Math.ceil(data.length / w);
-        ctx.strokeStyle = '#00FF41'; ctx.lineWidth = 1;
+        const visibleSamples = Math.max(1, data.length / zoomH);
+        const scrollableArea = data.length - visibleSamples;
+        const startSmp = Math.max(0, Math.floor(scrollPos * scrollableArea));
+        const sampPerPixel = Math.max(1, visibleSamples / w);
+
+        ctx.strokeStyle = '#111'; ctx.beginPath(); ctx.moveTo(0, h/2); ctx.lineTo(w, h/2); ctx.stroke();
+        
+        ctx.strokeStyle = '#00FF41'; 
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        for(let i=0; i<w; i++) {
-            let min=1, max=-1;
-            for(let j=0; j<step; j++) {
-                const s = data[i*step+j];
-                if(s<min) min=s; if(s>max) max=s;
+
+        for (let i = 0; i < w; i++) {
+            const bucketStart = Math.floor(startSmp + (i * sampPerPixel));
+            const bucketEnd = Math.floor(bucketStart + sampPerPixel);
+            
+            if (bucketStart >= data.length) break;
+
+            let min = 1.0, max = -1.0;
+            for (let j = bucketStart; j < bucketEnd; j++) {
+                if (j >= 0 && j < data.length) {
+                    const val = data[j];
+                    if (val < min) min = val;
+                    if (val > max) max = val;
+                }
             }
-            ctx.moveTo(i, (1+min)*h/2); ctx.lineTo(i, (1+max)*h/2);
+
+            // If we are zoomed in enough that a pixel is < 1 sample, bucketEnd == bucketStart
+            if (min === 1.0) { min = data[bucketStart] || 0; max = min; }
+
+            const yMin = (1 + (min * ampZoom)) * h / 2;
+            const yMax = (1 + (max * ampZoom)) * h / 2;
+            ctx.moveTo(i, yMin); ctx.lineTo(i, yMax);
         }
         ctx.stroke();
 
-        // Markers
-        const sX = (loopStart/audioBuf.duration)*w;
-        const eX = (loopEnd/audioBuf.duration)*w;
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = '#00FFFF'; ctx.strokeRect(sX, 0, 1, h);
-        ctx.strokeStyle = '#FF00FF'; ctx.strokeRect(eX, 0, 1, h);
-
+        const timeToX = (t) => (((t * audioBuf.sampleRate) - startSmp) / visibleSamples) * w;
+        const sX = timeToX(loopStart), eX = timeToX(loopEnd);
+        
+        if (sX >= 0 && sX <= w) { ctx.strokeStyle = '#00FFFF'; ctx.strokeRect(sX, 0, 1, h); }
+        if (eX >= 0 && eX <= w) { ctx.strokeStyle = '#FF00FF'; ctx.strokeRect(eX, 0, 1, h); }
         if (now !== null) {
-            const pX = (now/audioBuf.duration)*w;
-            ctx.strokeStyle = '#FFFF00'; ctx.strokeRect(pX, 0, 2, h);
+            const pX = timeToX(now);
+            if (pX >= 0 && pX <= w) { ctx.strokeStyle = '#FFFF00'; ctx.strokeRect(pX, 0, 2, h); }
         }
-    }
-
-    function renderLoop() {
-        if (!isPlaying) return;
-        let playTime = loopStart + (audioCtx.currentTime - playbackStartTime) % (loopEnd - loopStart);
-        draw(playTime);
-        aniFrame = requestAnimationFrame(renderLoop);
     }
 
     function updateUI() {
+        if (!audioBuf) return;
         const dur = loopEnd - loopStart;
         loopDisp.textContent = `${loopStart.toFixed(3)}s >> ${loopEnd.toFixed(3)}s (LEN: ${dur.toFixed(3)}s)`;
-        const bpm = 60 / (dur / 4);
-        bpmDisp.innerHTML = `1_BAR: <strong>${bpm.toFixed(1)}</strong> | 2_BAR: <strong>${(bpm/2).toFixed(1)}</strong>`;
+        zoomMagDisp.textContent = `${Math.round(zoomH)}x`;
+        ampMagDisp.textContent = `${ampZoom.toFixed(1)}x`;
     }
 
-    // --- Interaction ---
     canvas.onmousedown = (e) => {
         if (!audioBuf) return;
-        const x = (e.offsetX / canvas.clientWidth) * audioBuf.duration;
-        if (Math.abs(x - loopStart) < 0.2) dragTarget = 'start';
-        else if (Math.abs(x - loopEnd) < 0.2) dragTarget = 'end';
+        const visible = audioBuf.length / zoomH;
+        const startSmp = scrollPos * (audioBuf.length - visible);
+        const xTime = ((e.offsetX / canvas.clientWidth) * visible + startSmp) / audioBuf.sampleRate;
+        
+        // Better drag detection
+        const tolerance = (0.5 / zoomH) + 0.01;
+        if (Math.abs(xTime - loopStart) < tolerance) dragTarget = 'start';
+        else if (Math.abs(xTime - loopEnd) < tolerance) dragTarget = 'end';
+        
         if (dragTarget) { isDragging = true; if(isPlaying) togglePlay(); }
     };
+
     window.onmousemove = (e) => {
-        if (!isDragging) return;
         const rect = canvas.getBoundingClientRect();
-        let x = ((e.clientX - rect.left) / canvas.clientWidth) * audioBuf.duration;
-        x = Math.max(0, Math.min(audioBuf.duration, x));
-        if (dragTarget === 'start') loopStart = Math.min(x, loopEnd - 0.01);
-        else loopEnd = Math.max(x, loopStart + 0.01);
+        mouseX = e.clientX - rect.left;
+        if (!isDragging) return;
+        
+        const visible = audioBuf.length / zoomH;
+        const startSmp = scrollPos * (audioBuf.length - visible);
+        let xTime = ((mouseX / canvas.clientWidth) * visible + startSmp) / audioBuf.sampleRate;
+        
+        xTime = Math.max(0, Math.min(audioBuf.duration, xTime));
+        if (dragTarget === 'start') loopStart = Math.min(xTime, loopEnd - 0.001);
+        else loopEnd = Math.max(xTime, loopStart + 0.001);
         updateUI(); draw();
     };
-    window.onmouseup = () => { isDragging = false; dragTarget = null; };
 
-    // --- Export Logic ---
-    document.getElementById('exportTrimButton').onclick = () => {
-        const startSmp = Math.floor(loopStart * audioBuf.sampleRate);
-        const endSmp = Math.floor(loopEnd * audioBuf.sampleRate);
-        const newBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, endSmp - startSmp, audioBuf.sampleRate);
-        for(let c=0; c<audioBuf.numberOfChannels; c++) {
-            newBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(startSmp, endSmp));
+    window.onmouseup = () => { 
+        if (isDragging) { loopStart = findZeroCrossing(loopStart); loopEnd = findZeroCrossing(loopEnd); }
+        isDragging = false; dragTarget = null; updateUI(); draw(); 
+    };
+
+    window.onkeydown = (e) => {
+        if (e.ctrlKey && e.key === "ArrowUp") { e.preventDefault(); performZoom(1); }
+        if (e.ctrlKey && e.key === "ArrowDown") { e.preventDefault(); performZoom(-1); }
+        if (e.shiftKey && e.key === "ArrowUp") { e.preventDefault(); ampZoom *= 1.5; updateUI(); draw(); }
+        if (e.shiftKey && e.key === "ArrowDown") { e.preventDefault(); ampZoom /= 1.5; updateUI(); draw(); }
+    };
+
+    canvas.onwheel = (e) => {
+        if (!audioBuf) return; e.preventDefault();
+        if (e.ctrlKey) performZoom(-e.deltaY);
+        else {
+            const visible = audioBuf.length / zoomH;
+            const step = (e.deltaY * 0.001);
+            scrollPos = Math.max(0, Math.min(1, scrollPos + step));
         }
-        const wav = encodeWAV(newBuf);
-        const a = document.createElement('a'); 
-        a.href = URL.createObjectURL(new Blob([wav], {type:'audio/wav'}));
-        a.download = `LB3_CHOP_${Date.now()}.wav`; a.click();
+        draw();
+    };
+
+    btnPlay.onclick = togglePlay;
+
+    function togglePlay() {
+        if (isPlaying) { 
+            if(sourceNode) { sourceNode.stop(); sourceNode = null; }
+            isPlaying = false; btnPlay.textContent = "[ PLAY_LOOP ]"; cancelAnimationFrame(aniFrame); draw(); 
+        } else {
+            sourceNode = audioCtx.createBufferSource(); sourceNode.buffer = audioBuf; sourceNode.loop = true;
+            sourceNode.loopStart = loopStart; sourceNode.loopEnd = loopEnd; sourceNode.connect(audioCtx.destination);
+            sourceNode.start(0, loopStart); playbackStartTime = audioCtx.currentTime; isPlaying = true;
+            btnPlay.textContent = "[ STOP_ENGINE ]"; renderLoop();
+        }
+    }
+
+    function renderLoop() { if (!isPlaying) return; draw(loopStart + (audioCtx.currentTime - playbackStartTime) % (loopEnd - loopStart)); aniFrame = requestAnimationFrame(renderLoop); }
+
+    btnExport.onclick = () => {
+        const sSmp = Math.floor(loopStart * audioBuf.sampleRate), eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
+        const nBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, eSmp - sSmp, audioBuf.sampleRate);
+        for(let c=0; c<audioBuf.numberOfChannels; c++) nBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp));
+        const wav = encodeWAV(nBuf);
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([wav], {type:'audio/wav'}));
+        a.download = `LB3_${Date.now()}.wav`; a.click();
     };
 
     function encodeWAV(buf) {
@@ -297,23 +281,11 @@
         view.setUint16(pos, 1, true); pos+=2; view.setUint16(pos, n, true); pos+=2; view.setUint32(pos, sr, true); pos+=4;
         view.setUint32(pos, sr*n*2, true); pos+=4; view.setUint16(pos, n*2, true); pos+=2; view.setUint16(pos, 16, true); pos+=2;
         s('data'); view.setUint32(pos, len-pos-4, true); pos+=4;
-        for(let i=0; i<buf.length; i++) {
-            for(let c=0; c<n; c++) {
-                let v = Math.max(-1, Math.min(1, buf.getChannelData(c)[i]));
-                view.setInt16(pos, v<0?v*0x8000:v*0x7FFF, true); pos+=2;
-            }
-        }
+        for(let i=0; i<buf.length; i++) { for(let c=0; c<n; c++) { let v = Math.max(-1, Math.min(1, buf.getChannelData(c)[i])); view.setInt16(pos, v<0?v*0x8000:v*0x7FFF, true); pos+=2; } }
         return ab;
     }
 
     input.onchange = handleFile;
-    btns[0].onclick = togglePlay;
-    btns[1].onclick = () => status.textContent = "BPM_LOCKED_FOR_EXPORT";
-
-    window.onload = () => {
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
-        draw();
-    };
+    window.onload = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; draw(); };
 </script>
 </body></html>
