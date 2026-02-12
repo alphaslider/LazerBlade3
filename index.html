@@ -1,65 +1,198 @@
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LAZER BLADE 3 - Stable Engine</title>
+    <title>LAZER BLADE 3 // SUBZERO</title>
     <style>
-        @font-face { font-family: 'NIN'; src: url('nin.ttf') format('truetype'), local('Impact'), sans-serif; font-display: swap; }
-        @font-face { font-family: 'DATA'; src: url('data.ttf') format('truetype'), local('Courier New'), monospace; font-display: swap; }
+        @font-face { font-family: 'data'; src: url('data.ttf'); }
 
-        :root { --terminal-green: #00FF41; --terminal-black: #000000; --accent-cyan: #00FFFF; --accent-magenta: #FF00FF; --accent-yellow: #FFFF00; }
-
-        body {
-            font-family: 'DATA', monospace; background-color: var(--terminal-black); color: var(--terminal-green);
-            padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0;
-            text-shadow: 0 0 2px var(--terminal-green); -webkit-font-smoothing: none; overflow-x: hidden;
+        :root {
+            /* SUBZERO PALETTE */
+            --bg-obsidian: #05070a;
+            --panel-steel: #161b22;
+            --frost-trim: #30363d;
+            --ice-cyan: #00e5ff;
+            --electric-blue: #7df9ff;
+            --whiteout: #ffffff;
+            --rubber-pad: #0d1117;
         }
 
-        .container { width: 95vw; max-width: 900px; background-color: var(--terminal-black); border: 2px solid var(--terminal-green); padding: 20px; box-shadow: 0 0 15px rgba(0, 255, 65, 0.3); }
+        body {
+            font-family: 'data', monospace;
+            background-color: var(--bg-obsidian);
+            color: var(--ice-cyan);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            /* Scanline Overlay */
+            background-image: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.2) 0px,
+                rgba(0, 0, 0, 0.2) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            user-select: none;
+        }
 
-        #custom-header { font-family: 'NIN', sans-serif; text-align: left; margin-bottom: 20px; font-size: 2.4em; line-height: 1; padding-bottom: 10px; border-bottom: 2px solid var(--terminal-green); letter-spacing: 2px; }
+        /* HARDWARE CHASSIS */
+        .chassis {
+            background: var(--panel-steel);
+            border: 1px solid var(--frost-trim);
+            border-radius: 4px;
+            padding: 25px;
+            width: 95vw;
+            max-width: 900px;
+            box-shadow: 
+                0 0 30px rgba(0, 229, 255, 0.05),
+                0 20px 50px rgba(0,0,0,0.9);
+            position: relative;
+        }
 
-        #blinking-cursor { animation: blink 1s step-end infinite; }
-        @keyframes blink { from, to { visibility: visible; } 50% { visibility: hidden; } }
+        /* SCREWS */
+        .screw {
+            position: absolute; width: 12px; height: 12px;
+            background: #222; border-radius: 50%;
+            border: 1px solid #444;
+            box-shadow: inset 1px 1px 2px rgba(255,255,255,0.1);
+            z-index: 10;
+        }
+        .tl { top: 10px; left: 10px; transform: rotate(45deg); }
+        .tr { top: 10px; right: 10px; transform: rotate(15deg); }
+        .bl { bottom: 10px; left: 10px; transform: rotate(-20deg); }
+        .br { bottom: 10px; right: 10px; transform: rotate(60deg); }
+        .screw::after { content: ''; position: absolute; top: 5px; left: 2px; width: 8px; height: 2px; background: #111; }
+
+        #custom-header {
+            font-family: 'data', sans-serif;
+            text-align: left;
+            margin-bottom: 20px;
+            font-size: 24px;
+            line-height: 1;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--frost-trim);
+            letter-spacing: 2px;
+            color: var(--ice-cyan);
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+        }
+
+        #blinking-cursor { animation: blink 1s step-end infinite; color: var(--whiteout); }
+        @keyframes blink { from, to { opacity: 1; } 50% { opacity: 0; } }
 
         .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
 
+        /* RUBBER BUTTONS */
         button, #fileInputLabel {
-            font-family: 'DATA', monospace; background-color: var(--terminal-black); color: var(--terminal-green);
-            border: 2px solid var(--terminal-green); padding: 10px; font-size: 13px; cursor: pointer;
-            text-transform: uppercase; flex: 1; min-width: 120px; text-align: center;
+            font-family: 'data', monospace;
+            background: var(--rubber-pad);
+            color: #586069;
+            border: 1px solid var(--frost-trim);
+            padding: 12px;
+            font-size: 11px;
+            cursor: pointer;
+            text-transform: uppercase;
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+            border-radius: 3px;
+            transition: all 0.1s ease;
+            box-shadow: 0 4px 0 #000;
+            position: relative;
+            top: 0;
+            display: inline-block;
+            line-height: 1.2;
         }
 
-        button:hover:not(:disabled), #fileInputLabel:hover { background-color: var(--terminal-green); color: var(--terminal-black); }
-        button:disabled { opacity: 0.2; cursor: not-allowed; border-color: #333; }
+        button:hover:not(:disabled), #fileInputLabel:hover {
+            color: var(--whiteout);
+            border-color: var(--ice-cyan);
+        }
+
+        button:active:not(:disabled), #fileInputLabel:active {
+            top: 4px;
+            box-shadow: 0 0 0 #000;
+            color: var(--ice-cyan);
+            background: #0f1216;
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            top: 2px;
+            box-shadow: 0 2px 0 #000;
+        }
+
         #loadSampleInput { display: none; }
 
-        .info { background: #050505; padding: 12px; border: 1px inset #222; margin-bottom: 10px; font-size: 12px; }
-        .info strong { color: var(--accent-yellow); font-weight: normal; }
+        /* INFO SCREEN */
+        .info {
+            background: #080a0c;
+            padding: 15px;
+            border: 1px solid var(--frost-trim);
+            margin-bottom: 15px;
+            font-size: 11px;
+            box-shadow: inset 0 0 20px #000;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            color: #8b949e;
+        }
 
-        .nav-help { font-size: 9px; color: var(--accent-cyan); margin-bottom: 5px; text-align: right; width: 100%; }
+        .info strong, span { color: var(--ice-cyan); font-weight: normal; }
+        
+        .nav-help { 
+            font-size: 9px; 
+            color: var(--electric-blue); 
+            margin-bottom: 5px; 
+            text-align: right; 
+            width: 100%; 
+            opacity: 0.7;
+            letter-spacing: 1px;
+        }
 
+        /* WAVEFORM CANVAS */
         #waveformCanvas {
-            width: 100%; height: 250px; background-color: #020202; border: 1px solid #1a1a1a;
-            cursor: crosshair; touch-action: none;
+            width: 100%;
+            height: 250px;
+            background-color: var(--bg-obsidian);
+            border: 1px solid var(--frost-trim);
+            cursor: crosshair;
+            touch-action: none;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="custom-header">NEXUS_OSR // LAZER_BLADE_3<span id="blinking-cursor">_</span></div>
+<div class="chassis">
+    <div class="screw tl"></div>
+    <div class="screw tr"></div>
+    <div class="screw bl"></div>
+    <div class="screw br"></div>
+
+    <div id="custom-header">LAZER_BLADE_3 // SUBZERO<span id="blinking-cursor">_</span></div>
+
     <div class="controls">
-        <label id="fileInputLabel" for="loadSampleInput">[ INGEST_FILE ]</label>
+        <label id="fileInputLabel" for="loadSampleInput">INGEST_FILE</label>
         <input type="file" id="loadSampleInput" accept="audio/*">
-        <button id="loadSampleButton" disabled>[ PLAY_LOOP ]</button>
-        <button id="exportTrimButton" disabled>[ EXPORT_WAV ]</button>
+        <button id="loadSampleButton" disabled>PLAY_LOOP</button>
+        <button id="exportTrimButton" disabled>EXPORT_WAV</button>
     </div>
+
     <div class="info">
-        <div>STATUS: <span id="status">IDLE // STANDBY</span></div>
+        <div>STATUS: <span id="status">STANDBY</span></div>
         <div>WINDOW: <span id="loopRangeDisplay">0.000s >> 0.000s</span></div>
-        <div>ZOOM_MAG: <span id="zoomMag">1x</span> | AMP_BOOST: <span id="ampMag">1x</span></div>
+        <div style="text-align:right">ZOOM: <span id="zoomMag">1x</span> | AMP: <span id="ampMag">1x</span></div>
     </div>
-    <div class="nav-help">CTRL+UP/DN: ZOOM AT CURSOR | SHIFT+UP/DN: AMP GAIN | SCROLL: PAN</div>
+
+    <div class="nav-help">CTRL+UP/DN: ZOOM | SHIFT+UP/DN: GAIN | SCROLL: PAN</div>
+    
     <canvas id="waveformCanvas"></canvas>
 </div>
 
@@ -68,7 +201,6 @@
     let playbackStartTime = 0, aniFrame = null;
     let loopStart = 0, loopEnd = 0;
     let isPlaying = false, isDragging = false, dragTarget = null;
-    
     let zoomH = 1, scrollPos = 0, ampZoom = 1, mouseX = 0;
 
     const canvas = document.getElementById('waveformCanvas');
@@ -81,11 +213,19 @@
     const btnPlay = document.getElementById('loadSampleButton');
     const btnExport = document.getElementById('exportTrimButton');
 
+    // SUBZERO COLORS
+    const COL_BG = '#05070a';
+    const COL_GRID = '#30363d'; // Frost trim
+    const COL_WAVE = '#00e5ff'; // Ice Cyan
+    const COL_START = '#ffffff'; // Whiteout
+    const COL_END = '#7df9ff';   // Electric Blue
+    const COL_PLAY = '#ffffff';  // Playhead
+
     async function handleFile(e) {
         const file = e.target.files[0];
         if (!file) return;
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        status.textContent = 'SCANNING_PEAKS...';
+        status.textContent = 'SCANNING...';
         try {
             const ab = await file.arrayBuffer();
             audioBuf = await audioCtx.decodeAudioData(ab);
@@ -119,27 +259,27 @@
         const focalTime = (oldStart + (mouseX / canvas.clientWidth) * oldVisible) / audioBuf.sampleRate;
 
         if (delta > 0) zoomH *= 1.3; else zoomH /= 1.3;
-        
-        // Safety Clamp: Don't zoom out past 100% of the file
         zoomH = Math.max(1, Math.min(40000, zoomH));
 
         const newVisible = dataLen / zoomH;
         const newStart = (focalTime * audioBuf.sampleRate) - (mouseX / canvas.clientWidth) * newVisible;
         
-        // Safety Clamp: Don't scroll into the void
         if (zoomH === 1) {
             scrollPos = 0;
         } else {
             scrollPos = newStart / (dataLen - newVisible);
             scrollPos = Math.max(0, Math.min(1, scrollPos));
         }
-        
         updateUI(); draw();
     }
 
     function draw(now = null) {
         const w = canvas.width, h = canvas.height;
-        ctx.fillStyle = '#020202'; ctx.fillRect(0,0,w,h);
+        
+        // 1. Draw Subzero Background
+        ctx.fillStyle = COL_BG; 
+        ctx.fillRect(0,0,w,h);
+        
         if (!audioBuf) return;
 
         const data = audioBuf.getChannelData(0);
@@ -148,16 +288,18 @@
         const startSmp = Math.max(0, Math.floor(scrollPos * scrollableArea));
         const sampPerPixel = Math.max(1, visibleSamples / w);
 
-        ctx.strokeStyle = '#111'; ctx.beginPath(); ctx.moveTo(0, h/2); ctx.lineTo(w, h/2); ctx.stroke();
+        // 2. Draw Center Line (Frost)
+        ctx.strokeStyle = COL_GRID; 
+        ctx.beginPath(); ctx.moveTo(0, h/2); ctx.lineTo(w, h/2); ctx.stroke();
         
-        ctx.strokeStyle = '#00FF41'; 
+        // 3. Draw Waveform (Ice Cyan)
+        ctx.strokeStyle = COL_WAVE; 
         ctx.lineWidth = 1;
         ctx.beginPath();
 
         for (let i = 0; i < w; i++) {
             const bucketStart = Math.floor(startSmp + (i * sampPerPixel));
             const bucketEnd = Math.floor(bucketStart + sampPerPixel);
-            
             if (bucketStart >= data.length) break;
 
             let min = 1.0, max = -1.0;
@@ -169,7 +311,6 @@
                 }
             }
 
-            // If we are zoomed in enough that a pixel is < 1 sample, bucketEnd == bucketStart
             if (min === 1.0) { min = data[bucketStart] || 0; max = min; }
 
             const yMin = (1 + (min * ampZoom)) * h / 2;
@@ -179,20 +320,36 @@
         ctx.stroke();
 
         const timeToX = (t) => (((t * audioBuf.sampleRate) - startSmp) / visibleSamples) * w;
+        
+        // 4. Draw Markers (Whiteout / Electric Blue)
         const sX = timeToX(loopStart), eX = timeToX(loopEnd);
         
-        if (sX >= 0 && sX <= w) { ctx.strokeStyle = '#00FFFF'; ctx.strokeRect(sX, 0, 1, h); }
-        if (eX >= 0 && eX <= w) { ctx.strokeStyle = '#FF00FF'; ctx.strokeRect(eX, 0, 1, h); }
+        if (sX >= 0 && sX <= w) { 
+            ctx.fillStyle = COL_START; 
+            ctx.fillRect(sX, 0, 1, h); 
+            // Add triangular handle at top for visual flair
+            ctx.beginPath(); ctx.moveTo(sX,0); ctx.lineTo(sX+5,0); ctx.lineTo(sX,10); ctx.fill();
+        }
+        if (eX >= 0 && eX <= w) { 
+            ctx.fillStyle = COL_END; 
+            ctx.fillRect(eX, 0, 1, h); 
+            // Add triangular handle
+            ctx.beginPath(); ctx.moveTo(eX,0); ctx.lineTo(eX-5,0); ctx.lineTo(eX,10); ctx.fill();
+        }
+        
         if (now !== null) {
             const pX = timeToX(now);
-            if (pX >= 0 && pX <= w) { ctx.strokeStyle = '#FFFF00'; ctx.strokeRect(pX, 0, 2, h); }
+            if (pX >= 0 && pX <= w) { 
+                ctx.fillStyle = COL_PLAY; 
+                ctx.fillRect(pX, 0, 2, h); 
+            }
         }
     }
 
     function updateUI() {
         if (!audioBuf) return;
         const dur = loopEnd - loopStart;
-        loopDisp.textContent = `${loopStart.toFixed(3)}s >> ${loopEnd.toFixed(3)}s (LEN: ${dur.toFixed(3)}s)`;
+        loopDisp.textContent = `${loopStart.toFixed(3)}s >> ${loopEnd.toFixed(3)}s`;
         zoomMagDisp.textContent = `${Math.round(zoomH)}x`;
         ampMagDisp.textContent = `${ampZoom.toFixed(1)}x`;
     }
@@ -203,7 +360,6 @@
         const startSmp = scrollPos * (audioBuf.length - visible);
         const xTime = ((e.offsetX / canvas.clientWidth) * visible + startSmp) / audioBuf.sampleRate;
         
-        // Better drag detection
         const tolerance = (0.5 / zoomH) + 0.01;
         if (Math.abs(xTime - loopStart) < tolerance) dragTarget = 'start';
         else if (Math.abs(xTime - loopEnd) < tolerance) dragTarget = 'end';
@@ -254,12 +410,12 @@
     function togglePlay() {
         if (isPlaying) { 
             if(sourceNode) { sourceNode.stop(); sourceNode = null; }
-            isPlaying = false; btnPlay.textContent = "[ PLAY_LOOP ]"; cancelAnimationFrame(aniFrame); draw(); 
+            isPlaying = false; btnPlay.textContent = "PLAY_LOOP"; cancelAnimationFrame(aniFrame); draw(); 
         } else {
             sourceNode = audioCtx.createBufferSource(); sourceNode.buffer = audioBuf; sourceNode.loop = true;
             sourceNode.loopStart = loopStart; sourceNode.loopEnd = loopEnd; sourceNode.connect(audioCtx.destination);
             sourceNode.start(0, loopStart); playbackStartTime = audioCtx.currentTime; isPlaying = true;
-            btnPlay.textContent = "[ STOP_ENGINE ]"; renderLoop();
+            btnPlay.textContent = "STOP_ENGINE"; renderLoop();
         }
     }
 
@@ -288,4 +444,5 @@
     input.onchange = handleFile;
     window.onload = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; draw(); };
 </script>
-</body></html>
+</body>
+</html>
