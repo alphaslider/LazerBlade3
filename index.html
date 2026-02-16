@@ -3,206 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LAZER BLADE 3 // SUBZERO</title>
+    <title>LAZER BLADE 3 - Subzero Theme</title>
     <style>
-        @font-face { font-family: 'data'; src: url('data.ttf'); }
-
-        :root {
-            /* SUBZERO PALETTE */
-            --bg-obsidian: #05070a;
-            --panel-steel: #161b22;
-            --frost-trim: #30363d;
-            --ice-cyan: #00e5ff;
-            --electric-blue: #7df9ff;
-            --whiteout: #ffffff;
-            --rubber-pad: #0d1117;
+        @font-face { font-family: 'DATA'; src: url('data.ttf') format('truetype'), local('Courier New'), monospace; font-display: swap; }
+        :root { 
+            --subzero-dark: #111215; /* Main panel color */
+            --subzero-bg: #0a0b0d; /* Body background */
+            --subzero-cyan: #00e5ff; /* Main accent color */
+            --subzero-text: #b0bec5; /* Secondary text color */
+            --accent-magenta: #FF00FF; /* Accent for markers */
         }
-
         body {
-            font-family: 'data', monospace;
-            background-color: var(--bg-obsidian);
-            color: var(--ice-cyan);
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow-x: hidden;
-            /* Scanline Overlay */
-            background-image: repeating-linear-gradient(
-                0deg,
-                rgba(0, 0, 0, 0.2) 0px,
-                rgba(0, 0, 0, 0.2) 1px,
-                transparent 1px,
-                transparent 2px
-            );
+            font-family: 'DATA', monospace; background-color: var(--subzero-bg); color: var(--subzero-text);
+            padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0;
+            text-shadow: 0 0 2px rgba(0, 229, 255, 0.5); overflow-x: hidden;
             user-select: none;
         }
-
-        /* HARDWARE CHASSIS */
-        .chassis {
-            background: var(--panel-steel);
-            border: 1px solid var(--frost-trim);
-            border-radius: 4px;
-            padding: 25px;
-            width: 95vw;
-            max-width: 900px;
-            box-shadow: 
-                0 0 30px rgba(0, 229, 255, 0.05),
-                0 20px 50px rgba(0,0,0,0.9);
+        .container { 
+            width: 95vw; max-width: 960px; 
+            background-color: var(--subzero-dark); 
+            border: 2px solid #222327;
+            padding: 25px; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.8);
             position: relative;
         }
-
-        /* SCREWS */
-        .screw {
-            position: absolute; width: 12px; height: 12px;
-            background: #222; border-radius: 50%;
-            border: 1px solid #444;
-            box-shadow: inset 1px 1px 2px rgba(255,255,255,0.1);
-            z-index: 10;
+        /* Corner screws based on image */
+        .container::before, .container::after {
+            content: ''; position: absolute; width: 10px; height: 10px; border-radius: 50%; background: #333; border: 2px solid #222;
         }
-        .tl { top: 10px; left: 10px; transform: rotate(45deg); }
-        .tr { top: 10px; right: 10px; transform: rotate(15deg); }
-        .bl { bottom: 10px; left: 10px; transform: rotate(-20deg); }
-        .br { bottom: 10px; right: 10px; transform: rotate(60deg); }
-        .screw::after { content: ''; position: absolute; top: 5px; left: 2px; width: 8px; height: 2px; background: #111; }
+        .container::before { top: 5px; left: 5px; } .container::after { top: 5px; right: 5px; }
 
-        #custom-header {
-            font-family: 'data', sans-serif;
-            text-align: left;
-            margin-bottom: 20px;
-            font-size: 24px;
-            line-height: 1;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--frost-trim);
-            letter-spacing: 2px;
-            color: var(--ice-cyan);
-            text-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
-        }
-
-        #blinking-cursor { animation: blink 1s step-end infinite; color: var(--whiteout); }
-        @keyframes blink { from, to { opacity: 1; } 50% { opacity: 0; } }
-
-        .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
-
-        /* RUBBER BUTTONS */
-        button, #fileInputLabel {
-            font-family: 'data', monospace;
-            background: var(--rubber-pad);
-            color: #586069;
-            border: 1px solid var(--frost-trim);
-            padding: 12px;
-            font-size: 11px;
-            cursor: pointer;
+        #custom-header { 
+            font-family: 'DATA', sans-serif; text-align: left; margin-bottom: 25px; 
+            font-size: 1.8em; line-height: 1; letter-spacing: 1px; color: var(--subzero-cyan);
             text-transform: uppercase;
-            flex: 1;
-            min-width: 120px;
-            text-align: center;
-            border-radius: 3px;
-            transition: all 0.1s ease;
-            box-shadow: 0 4px 0 #000;
-            position: relative;
-            top: 0;
-            display: inline-block;
-            line-height: 1.2;
         }
-
-        button:hover:not(:disabled), #fileInputLabel:hover {
-            color: var(--whiteout);
-            border-color: var(--ice-cyan);
-        }
-
-        button:active:not(:disabled), #fileInputLabel:active {
-            top: 4px;
-            box-shadow: 0 0 0 #000;
-            color: var(--ice-cyan);
-            background: #0f1216;
-        }
-
-        button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            top: 2px;
-            box-shadow: 0 2px 0 #000;
-        }
-
-        #loadSampleInput { display: none; }
-
-        /* INFO SCREEN */
-        .info {
-            background: #080a0c;
-            padding: 15px;
-            border: 1px solid var(--frost-trim);
-            margin-bottom: 15px;
-            font-size: 11px;
-            box-shadow: inset 0 0 20px #000;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            color: #8b949e;
-        }
-
-        .info strong, span { color: var(--ice-cyan); font-weight: normal; }
         
-        .nav-help { 
-            font-size: 9px; 
-            color: var(--electric-blue); 
-            margin-bottom: 5px; 
-            text-align: right; 
-            width: 100%; 
-            opacity: 0.7;
+        #blinking-cursor { animation: blink 1s step-end infinite; color: var(--subzero-cyan); }
+        @keyframes blink { from, to { visibility: visible; } 50% { visibility: hidden; } }
+
+        .controls { display: flex; gap: 15px; margin-bottom: 20px; }
+        
+        button, #fileInputLabel, .toggle-container {
+            font-family: 'DATA', monospace; background-color: #1a1b1f; color: var(--subzero-text);
+            border: 2px solid #333; padding: 12px 20px; font-size: 14px; cursor: pointer;
+            text-transform: uppercase; flex: 1; text-align: center; transition: all 0.2s;
+            display: flex; justify-content: center; align-items: center;
             letter-spacing: 1px;
         }
+        
+        button:hover:not(:disabled), #fileInputLabel:hover, .toggle-container:hover { 
+            background-color: #222327; color: var(--subzero-cyan); 
+            border-color: var(--subzero-cyan); box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+        }
+        
+        button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #222; }
+        #loadSampleInput { display: none; }
+        
+        /* Checkbox Styling */
+        input[type="checkbox"] { 
+            accent-color: var(--subzero-cyan); margin-right: 10px; 
+            transform: scale(1.2); cursor: pointer; 
+        }
 
-        /* WAVEFORM CANVAS */
-        #waveformCanvas {
-            width: 100%;
-            height: 250px;
-            background-color: var(--bg-obsidian);
-            border: 1px solid var(--frost-trim);
-            cursor: crosshair;
-            touch-action: none;
-            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+        .info { 
+            background: transparent; padding: 10px 0; 
+            border-top: 1px solid #333; border-bottom: 1px solid #333;
+            margin-bottom: 10px; font-size: 12px; 
+            display: flex; justify-content: space-between; color: var(--subzero-text);
+            letter-spacing: 0.5px;
+        }
+        .info > div > span { color: var(--subzero-cyan); }
+        
+        .nav-help { font-size: 10px; color: var(--subzero-text); margin-bottom: 5px; text-align: right; width: 100%; opacity: 0.8; letter-spacing: 0.5px; }
+        
+        #waveformCanvas { 
+            width: 100%; height: 300px; 
+            background-color: #0a0b0d; 
+            border: 2px solid #222327;
+            cursor: crosshair; touch-action: none; 
         }
     </style>
 </head>
 <body>
 
-<div class="chassis">
-    <div class="screw tl"></div>
-    <div class="screw tr"></div>
-    <div class="screw bl"></div>
-    <div class="screw br"></div>
-
+<div class="container">
     <div id="custom-header">LAZER_BLADE_3 // SUBZERO<span id="blinking-cursor">_</span></div>
-
+    
     <div class="controls">
         <label id="fileInputLabel" for="loadSampleInput">INGEST_FILE</label>
         <input type="file" id="loadSampleInput" accept="audio/*">
+        
         <button id="loadSampleButton" disabled>PLAY_LOOP</button>
         <button id="exportTrimButton" disabled>EXPORT_WAV</button>
     </div>
 
     <div class="info">
-        <div>STATUS: <span id="status">STANDBY</span></div>
-        <div>WINDOW: <span id="loopRangeDisplay">0.000s >> 0.000s</span></div>
-        <div style="text-align:right">ZOOM: <span id="zoomMag">1x</span> | AMP: <span id="ampMag">1x</span></div>
+        <div>STATUS: <span id="status">READY: AMEN.WAV</span></div>
+        <div>WINDOW: <span id="loopRangeDisplay">0.000S >> 6.000S</span></div>
+        <div>ZOOM: <span id="zoomMag">8X</span> | AMP: <span id="ampMag">1.0X</span></div>
     </div>
-
-    <div class="nav-help">CTRL+UP/DN: ZOOM | SHIFT+UP/DN: GAIN | SCROLL: PAN</div>
     
+    <div class="nav-help">CTRL+UP/DN: ZOOM | SHIFT+UP/DN: GAIN | SCROLL: PAN</div>
     <canvas id="waveformCanvas"></canvas>
+    <label class="toggle-container" style="margin-top:10px; border: none; background: none; justify-content: flex-start; padding: 0; font-size: 12px; color: var(--subzero-text);">
+        <input type="checkbox" id="snapToggle" checked style="transform: scale(1); margin-right: 5px;"> SNAP_ZERO
+    </label>
 </div>
 
 <script>
+    // --- GLOBAL STATE ---
     let audioCtx, audioBuf, sourceNode = null;
-    let playbackStartTime = 0, aniFrame = null;
     let loopStart = 0, loopEnd = 0;
     let isPlaying = false, isDragging = false, dragTarget = null;
-    let zoomH = 1, scrollPos = 0, ampZoom = 1, mouseX = 0;
+    let zoomH = 1, scrollPos = 0, ampZoom = 1;
+    let mouseX = 0, playbackStartTime = 0, aniFrame = null;
 
+    // --- DOM ELEMENTS ---
     const canvas = document.getElementById('waveformCanvas');
     const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
@@ -212,237 +129,228 @@
     const input = document.getElementById('loadSampleInput');
     const btnPlay = document.getElementById('loadSampleButton');
     const btnExport = document.getElementById('exportTrimButton');
+    const snapToggle = document.getElementById('snapToggle');
 
-    // SUBZERO COLORS
-    const COL_BG = '#05070a';
-    const COL_GRID = '#30363d'; // Frost trim
-    const COL_WAVE = '#00e5ff'; // Ice Cyan
-    const COL_START = '#ffffff'; // Whiteout
-    const COL_END = '#7df9ff';   // Electric Blue
-    const COL_PLAY = '#ffffff';  // Playhead
-
-    async function handleFile(e) {
-        const file = e.target.files[0];
-        if (!file) return;
+    // --- AUDIO ENGINE ---
+    function getAudioContext() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        status.textContent = 'SCANNING...';
-        try {
-            const ab = await file.arrayBuffer();
-            audioBuf = await audioCtx.decodeAudioData(ab);
-            loopStart = 0; loopEnd = audioBuf.duration;
-            zoomH = 1; scrollPos = 0; ampZoom = 1;
-            status.textContent = `READY: ${file.name.toUpperCase()}`;
-            btnPlay.disabled = false; btnExport.disabled = false;
-            updateUI(); draw();
-        } catch (err) { status.textContent = 'SCAN_FAILED'; }
+        return audioCtx;
+    }
+
+    function startAudio(offset = 0) {
+        if (!audioBuf) return;
+        getAudioContext();
+        if (sourceNode) { sourceNode.stop(); sourceNode.disconnect(); }
+        sourceNode = audioCtx.createBufferSource();
+        sourceNode.buffer = audioBuf;
+        sourceNode.loop = true;
+        sourceNode.loopStart = loopStart;
+        sourceNode.loopEnd = loopEnd;
+        sourceNode.connect(audioCtx.destination);
+        let startPoint = offset;
+        if (startPoint < loopStart || startPoint > loopEnd) startPoint = loopStart;
+        sourceNode.start(0, startPoint);
+        playbackStartTime = audioCtx.currentTime - (startPoint - loopStart);
+        isPlaying = true;
+        btnPlay.textContent = "STOP_ENGINE";
+        btnPlay.style.borderColor = "var(--subzero-cyan)";
+        renderLoop();
+    }
+
+    function stopAudio() {
+        if (sourceNode) { sourceNode.stop(); sourceNode = null; }
+        isPlaying = false;
+        btnPlay.textContent = "PLAY_LOOP";
+        btnPlay.style.borderColor = "";
+        cancelAnimationFrame(aniFrame);
+    }
+
+    function togglePlay() {
+        if (isPlaying) { stopAudio(); draw(); } else { startAudio(loopStart); }
+    }
+
+    function syncLoopPoints() {
+        if (sourceNode && isPlaying) {
+            sourceNode.loopStart = loopStart;
+            sourceNode.loopEnd = loopEnd;
+        }
     }
 
     function findZeroCrossing(time) {
         if (!audioBuf) return time;
         const data = audioBuf.getChannelData(0);
-        const center = Math.floor(time * audioBuf.sampleRate);
-        const range = 512; 
-        let best = center, min = 1.0;
-        for (let i = center - range; i < center + range; i++) {
+        const centerIdx = Math.floor(time * audioBuf.sampleRate);
+        const range = 500;
+        let bestIdx = centerIdx, minAmp = 1.0;
+        for (let i = centerIdx - range; i < centerIdx + range; i++) {
             if (i >= 0 && i < data.length) {
-                if (Math.abs(data[i]) < min) { min = Math.abs(data[i]); best = i; }
+                const absVal = Math.abs(data[i]);
+                if (absVal < minAmp) { minAmp = absVal; bestIdx = i; }
             }
         }
-        return best / audioBuf.sampleRate;
+        return bestIdx / audioBuf.sampleRate;
     }
 
-    function performZoom(delta) {
+    // --- VISUALIZATION HELPERS ---
+    function getVisibleData() {
+        if (!audioBuf) return { startSmp: 0, visibleSamples: 0 };
+        const visibleSamples = audioBuf.length / zoomH;
+        const scrollable = audioBuf.length - visibleSamples;
+        const startSmp = scrollPos * scrollable;
+        return { startSmp, visibleSamples };
+    }
+
+    function xToTime(x) {
+        const { startSmp, visibleSamples } = getVisibleData();
+        return ((x / canvas.width) * visibleSamples + startSmp) / audioBuf.sampleRate;
+    }
+
+    function timeToX(t) {
+        const { startSmp, visibleSamples } = getVisibleData();
+        return (((t * audioBuf.sampleRate) - startSmp) / visibleSamples) * canvas.width;
+    }
+
+    // --- INTERACTION EVENT LISTENERS ---
+    canvas.onwheel = (e) => {
         if (!audioBuf) return;
-        const dataLen = audioBuf.length;
-        const oldVisible = dataLen / zoomH;
-        const oldStart = scrollPos * (dataLen - oldVisible);
-        const focalTime = (oldStart + (mouseX / canvas.clientWidth) * oldVisible) / audioBuf.sampleRate;
-
-        if (delta > 0) zoomH *= 1.3; else zoomH /= 1.3;
-        zoomH = Math.max(1, Math.min(40000, zoomH));
-
-        const newVisible = dataLen / zoomH;
-        const newStart = (focalTime * audioBuf.sampleRate) - (mouseX / canvas.clientWidth) * newVisible;
-        
-        if (zoomH === 1) {
-            scrollPos = 0;
+        e.preventDefault();
+        if (e.shiftKey) {
+            const step = (e.deltaY * 0.0005) / zoomH * 10;
+            scrollPos = Math.max(0, Math.min(1, scrollPos + step));
         } else {
-            scrollPos = newStart / (dataLen - newVisible);
-            scrollPos = Math.max(0, Math.min(1, scrollPos));
+            const focalTime = xToTime(e.offsetX);
+            const zoomFactor = e.deltaY > 0 ? 0.85 : 1.15;
+            zoomH = Math.max(1, Math.min(50000, zoomH * zoomFactor));
+            const newVisible = audioBuf.length / zoomH;
+            const newStartSmp = (focalTime * audioBuf.sampleRate) - (e.offsetX / canvas.width) * newVisible;
+            const maxScroll = audioBuf.length - newVisible;
+            scrollPos = maxScroll <= 0 ? 0 : Math.max(0, Math.min(1, newStartSmp / maxScroll));
         }
-        updateUI(); draw();
-    }
+        draw(); updateUI();
+    };
 
+    canvas.onmousedown = (e) => {
+        if (!audioBuf) return;
+        let time = xToTime(e.offsetX);
+        if (snapToggle.checked) time = findZeroCrossing(time);
+        const tol = (20 / canvas.width) * (audioBuf.length / zoomH / audioBuf.sampleRate);
+        if (Math.abs(time - loopStart) < tol) { dragTarget = 'start'; }
+        else if (Math.abs(time - loopEnd) < tol) { dragTarget = 'end'; }
+        else {
+            loopStart = time; loopEnd = time + 0.05; dragTarget = 'end';
+            if (isPlaying) { stopAudio(); startAudio(loopStart); }
+        }
+        isDragging = true;
+    };
+
+    window.onmousemove = (e) => {
+        if (!isDragging || !audioBuf) return;
+        const rect = canvas.getBoundingClientRect();
+        const rawX = e.clientX - rect.left;
+        let time = Math.max(0, Math.min(audioBuf.duration, xToTime(rawX)));
+        if (snapToggle.checked) time = findZeroCrossing(time);
+        if (dragTarget === 'start') { loopStart = Math.min(time, loopEnd - 0.001); }
+        else if (dragTarget === 'end') { loopEnd = Math.max(time, loopStart + 0.001); }
+        syncLoopPoints(); draw(); updateUI();
+    };
+
+    window.onmouseup = () => { isDragging = false; dragTarget = null; draw(); };
+
+    // --- DRAWING LOOP ---
     function draw(now = null) {
         const w = canvas.width, h = canvas.height;
-        
-        // 1. Draw Subzero Background
-        ctx.fillStyle = COL_BG; 
-        ctx.fillRect(0,0,w,h);
-        
+        ctx.fillStyle = '#0a0b0d'; ctx.fillRect(0,0,w,h);
         if (!audioBuf) return;
-
         const data = audioBuf.getChannelData(0);
-        const visibleSamples = Math.max(1, data.length / zoomH);
-        const scrollableArea = data.length - visibleSamples;
-        const startSmp = Math.max(0, Math.floor(scrollPos * scrollableArea));
-        const sampPerPixel = Math.max(1, visibleSamples / w);
-
-        // 2. Draw Center Line (Frost)
-        ctx.strokeStyle = COL_GRID; 
-        ctx.beginPath(); ctx.moveTo(0, h/2); ctx.lineTo(w, h/2); ctx.stroke();
-        
-        // 3. Draw Waveform (Ice Cyan)
-        ctx.strokeStyle = COL_WAVE; 
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-
+        const { startSmp, visibleSamples } = getVisibleData();
+        const step = Math.max(1, visibleSamples / w);
+        ctx.beginPath(); ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 1;
         for (let i = 0; i < w; i++) {
-            const bucketStart = Math.floor(startSmp + (i * sampPerPixel));
-            const bucketEnd = Math.floor(bucketStart + sampPerPixel);
-            if (bucketStart >= data.length) break;
-
+            const b = Math.floor(startSmp + (i * step));
+            if (b >= data.length) break;
             let min = 1.0, max = -1.0;
-            for (let j = bucketStart; j < bucketEnd; j++) {
-                if (j >= 0 && j < data.length) {
-                    const val = data[j];
-                    if (val < min) min = val;
-                    if (val > max) max = val;
-                }
+            for(let j=0; j<step; j++) {
+                const v = data[b+j] || 0; if(v<min) min=v; if(v>max) max=v;
             }
-
-            if (min === 1.0) { min = data[bucketStart] || 0; max = min; }
-
-            const yMin = (1 + (min * ampZoom)) * h / 2;
-            const yMax = (1 + (max * ampZoom)) * h / 2;
+            const yMin = (1 + min * ampZoom) * h / 2;
+            const yMax = (1 + max * ampZoom) * h / 2;
             ctx.moveTo(i, yMin); ctx.lineTo(i, yMax);
         }
         ctx.stroke();
-
-        const timeToX = (t) => (((t * audioBuf.sampleRate) - startSmp) / visibleSamples) * w;
-        
-        // 4. Draw Markers (Whiteout / Electric Blue)
         const sX = timeToX(loopStart), eX = timeToX(loopEnd);
-        
-        if (sX >= 0 && sX <= w) { 
-            ctx.fillStyle = COL_START; 
-            ctx.fillRect(sX, 0, 1, h); 
-            // Add triangular handle at top for visual flair
-            ctx.beginPath(); ctx.moveTo(sX,0); ctx.lineTo(sX+5,0); ctx.lineTo(sX,10); ctx.fill();
-        }
-        if (eX >= 0 && eX <= w) { 
-            ctx.fillStyle = COL_END; 
-            ctx.fillRect(eX, 0, 1, h); 
-            // Add triangular handle
-            ctx.beginPath(); ctx.moveTo(eX,0); ctx.lineTo(eX-5,0); ctx.lineTo(eX,10); ctx.fill();
-        }
-        
+        ctx.fillStyle = 'rgba(0, 229, 255, 0.1)'; ctx.fillRect(sX, 0, eX - sX, h);
+        ctx.strokeStyle = '#00e5ff'; ctx.strokeRect(sX, 0, 1, h);
+        ctx.fillStyle = '#00e5ff'; ctx.fillRect(sX-5, 0, 10, 12);
+        ctx.strokeStyle = '#FF00FF'; ctx.strokeRect(eX, 0, 1, h);
+        ctx.fillStyle = '#FF00FF'; ctx.fillRect(eX-5, h-12, 10, 12);
         if (now !== null) {
             const pX = timeToX(now);
-            if (pX >= 0 && pX <= w) { 
-                ctx.fillStyle = COL_PLAY; 
-                ctx.fillRect(pX, 0, 2, h); 
+            if (pX >= 0 && pX <= w) {
+                ctx.strokeStyle = '#FF00FF'; ctx.lineWidth = 2; ctx.beginPath();
+                ctx.moveTo(pX, 0); ctx.lineTo(pX, h); ctx.stroke();
             }
         }
+    }
+
+    function renderLoop() {
+        if (!isPlaying) return;
+        const dur = loopEnd - loopStart;
+        if (dur <= 0) return;
+        let playTime = loopStart + (audioCtx.currentTime - playbackStartTime) % dur;
+        draw(playTime);
+        aniFrame = requestAnimationFrame(renderLoop);
     }
 
     function updateUI() {
         if (!audioBuf) return;
-        const dur = loopEnd - loopStart;
-        loopDisp.textContent = `${loopStart.toFixed(3)}s >> ${loopEnd.toFixed(3)}s`;
-        zoomMagDisp.textContent = `${Math.round(zoomH)}x`;
-        ampMagDisp.textContent = `${ampZoom.toFixed(1)}x`;
+        loopDisp.textContent = `${loopStart.toFixed(3)}S >> ${loopEnd.toFixed(3)}S`;
+        zoomMagDisp.textContent = `${Math.round(zoomH)}X`;
+        ampMagDisp.textContent = `${ampZoom.toFixed(1)}X`;
     }
 
-    canvas.onmousedown = (e) => {
-        if (!audioBuf) return;
-        const visible = audioBuf.length / zoomH;
-        const startSmp = scrollPos * (audioBuf.length - visible);
-        const xTime = ((e.offsetX / canvas.clientWidth) * visible + startSmp) / audioBuf.sampleRate;
-        
-        const tolerance = (0.5 / zoomH) + 0.01;
-        if (Math.abs(xTime - loopStart) < tolerance) dragTarget = 'start';
-        else if (Math.abs(xTime - loopEnd) < tolerance) dragTarget = 'end';
-        
-        if (dragTarget) { isDragging = true; if(isPlaying) togglePlay(); }
-    };
-
-    window.onmousemove = (e) => {
-        const rect = canvas.getBoundingClientRect();
-        mouseX = e.clientX - rect.left;
-        if (!isDragging) return;
-        
-        const visible = audioBuf.length / zoomH;
-        const startSmp = scrollPos * (audioBuf.length - visible);
-        let xTime = ((mouseX / canvas.clientWidth) * visible + startSmp) / audioBuf.sampleRate;
-        
-        xTime = Math.max(0, Math.min(audioBuf.duration, xTime));
-        if (dragTarget === 'start') loopStart = Math.min(xTime, loopEnd - 0.001);
-        else loopEnd = Math.max(xTime, loopStart + 0.001);
-        updateUI(); draw();
-    };
-
-    window.onmouseup = () => { 
-        if (isDragging) { loopStart = findZeroCrossing(loopStart); loopEnd = findZeroCrossing(loopEnd); }
-        isDragging = false; dragTarget = null; updateUI(); draw(); 
-    };
-
-    window.onkeydown = (e) => {
-        if (e.ctrlKey && e.key === "ArrowUp") { e.preventDefault(); performZoom(1); }
-        if (e.ctrlKey && e.key === "ArrowDown") { e.preventDefault(); performZoom(-1); }
-        if (e.shiftKey && e.key === "ArrowUp") { e.preventDefault(); ampZoom *= 1.5; updateUI(); draw(); }
-        if (e.shiftKey && e.key === "ArrowDown") { e.preventDefault(); ampZoom /= 1.5; updateUI(); draw(); }
-    };
-
-    canvas.onwheel = (e) => {
-        if (!audioBuf) return; e.preventDefault();
-        if (e.ctrlKey) performZoom(-e.deltaY);
-        else {
-            const visible = audioBuf.length / zoomH;
-            const step = (e.deltaY * 0.001);
-            scrollPos = Math.max(0, Math.min(1, scrollPos + step));
-        }
-        draw();
-    };
-
-    btnPlay.onclick = togglePlay;
-
-    function togglePlay() {
-        if (isPlaying) { 
-            if(sourceNode) { sourceNode.stop(); sourceNode = null; }
-            isPlaying = false; btnPlay.textContent = "PLAY_LOOP"; cancelAnimationFrame(aniFrame); draw(); 
-        } else {
-            sourceNode = audioCtx.createBufferSource(); sourceNode.buffer = audioBuf; sourceNode.loop = true;
-            sourceNode.loopStart = loopStart; sourceNode.loopEnd = loopEnd; sourceNode.connect(audioCtx.destination);
-            sourceNode.start(0, loopStart); playbackStartTime = audioCtx.currentTime; isPlaying = true;
-            btnPlay.textContent = "STOP_ENGINE"; renderLoop();
-        }
+    // --- FILE HANDLING & EXPORT ---
+    async function handleFile(e) {
+        const file = e.target.files[0]; if (!file) return;
+        getAudioContext(); status.textContent = 'SCANNING...';
+        try {
+            const ab = await file.arrayBuffer();
+            audioBuf = await audioCtx.decodeAudioData(ab);
+            loopStart = 0; loopEnd = audioBuf.duration;
+            zoomH = 1; scrollPos = 0;
+            status.textContent = `READY: ${file.name.toUpperCase()}`;
+            btnPlay.disabled = false; btnExport.disabled = false;
+            updateUI(); draw();
+        } catch (err) { status.textContent = "ERR: FILE_CORRUPT"; }
     }
-
-    function renderLoop() { if (!isPlaying) return; draw(loopStart + (audioCtx.currentTime - playbackStartTime) % (loopEnd - loopStart)); aniFrame = requestAnimationFrame(renderLoop); }
-
-    btnExport.onclick = () => {
-        const sSmp = Math.floor(loopStart * audioBuf.sampleRate), eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
-        const nBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, eSmp - sSmp, audioBuf.sampleRate);
-        for(let c=0; c<audioBuf.numberOfChannels; c++) nBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp));
-        const wav = encodeWAV(nBuf);
-        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([wav], {type:'audio/wav'}));
-        a.download = `LB3_${Date.now()}.wav`; a.click();
-    };
 
     function encodeWAV(buf) {
-        let n=buf.numberOfChannels, sr=buf.sampleRate, len=buf.length*n*2+44, ab=new ArrayBuffer(len), view=new DataView(ab), pos=0;
+        let n = buf.numberOfChannels, sr = buf.sampleRate, len = buf.length * n * 2 + 44;
+        let ab = new ArrayBuffer(len), view = new DataView(ab), pos = 0;
         const s = (str) => { for(let i=0; i<str.length; i++) view.setUint8(pos++, str.charCodeAt(i)); };
         s('RIFF'); view.setUint32(pos, len-8, true); pos+=4; s('WAVEfmt '); view.setUint32(pos, 16, true); pos+=4;
         view.setUint16(pos, 1, true); pos+=2; view.setUint16(pos, n, true); pos+=2; view.setUint32(pos, sr, true); pos+=4;
         view.setUint32(pos, sr*n*2, true); pos+=4; view.setUint16(pos, n*2, true); pos+=2; view.setUint16(pos, 16, true); pos+=2;
         s('data'); view.setUint32(pos, len-pos-4, true); pos+=4;
-        for(let i=0; i<buf.length; i++) { for(let c=0; c<n; c++) { let v = Math.max(-1, Math.min(1, buf.getChannelData(c)[i])); view.setInt16(pos, v<0?v*0x8000:v*0x7FFF, true); pos+=2; } }
+        for(let i=0; i<buf.length; i++) { for(let c=0; c<n; c++) { let v = Math.max(-1, Math.min(1, buf.getChannelData(c)[i])); view.setInt16(pos, v < 0 ? v * 0x8000 : v * 0x7FFF, true); pos+=2; } }
         return ab;
     }
 
+    btnExport.onclick = () => {
+        if (!audioBuf) return;
+        const sSmp = Math.floor(loopStart * audioBuf.sampleRate), eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
+        const len = eSmp - sSmp;
+        if (len <= 0) return;
+        const nBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate);
+        for(let c=0; c<audioBuf.numberOfChannels; c++) { nBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); }
+        const wav = encodeWAV(nBuf);
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([wav], {type:'audio/wav'}));
+        a.download = `LB3_${Date.now()}.wav`; a.click();
+    };
+
     input.onchange = handleFile;
+    btnPlay.onclick = togglePlay;
     window.onload = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; draw(); };
+    window.onresize = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; draw(); };
 </script>
 </body>
 </html>
