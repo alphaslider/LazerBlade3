@@ -1,3 +1,48 @@
-# LazerBlade3
-Chop Long samples to smaller chunks to be chopped and looped in wave-edit
-⚡ LAZER BLADE 3 - Pre-Production Sample Preparerv1.0.0 // Terminal Interface for Waveform SurgeryLAZER BLADE 3 is the "Heavy Lifting" module of the MEGAMICRODAW ecosystem. While the Wave-Edit tool is for surgical micro-chops, LAZER BLADE 3 is designed for the initial phase: loading long-form audio (full songs, field recordings, or long synth takes) and extracting perfect, BPM-synced loops.🛠 The Workflow: Why use this first?In the MEGAMICRODAW workflow, you should process your raw assets here before moving them into the sequencer.Ingestion: Load massive files that are too large for the real-time sequencer to handle comfortably.BPM Analysis: The engine automatically calculates potential BPMs ($1$-Bar, $2$-Bar, and $4$-Bar options) based on your selection.The "Lazer" Trim: Drag the Cyan (Start) and Magenta (End) markers to isolate a loop.Export: Save a perfectly trimmed .wav that is ready to be dropped into the Precision Loop Chopper for final zero-crossing alignment.📟 Interface Breakdown[ LOAD SAMPLE ]: Initiates the NEXUS protocol to decode MP3/WAV/OGG into an AudioBuffer.[ PLAY / LOOP ]: Audition your selection. Note: This uses a Hard Loop logic—it will strictly cycle between your markers.[ TRIM BPM ]: Locks in your selection and confirms the mathematical BPM. Use this to verify your loop is a "perfect" bar.[ EXPORT WAV ]: Generates a new 16-bit PCM WAV file containing only the data between your markers.🔬 Technical SpecificationsCRT Glow Engine: Uses text-shadow and terminal-green hex codes for a high-contrast, low-eye-strain environment.Touch-Ready: Built with touch-action: none and DPI-aware canvas scaling, making it functional on mobile "Blade" devices.WAV Encoder: A low-level DataView implementation that writes the RIFF/WAVE header manually, ensuring compatibility with all vintage and modern DAWs.📝 Developer Notes (Memory Markdown)Pre-Edit Logic: Always ensure the "LOOP_WINDOW" duration matches the intended bar length of your project. If your project is 120 BPM, look for the 120.0 BPM indicator in the OPT_1BAR or OPT_2BAR display before exporting.Future Improvements for the Mind Map:Normalization on Export: Automatically scale the AudioBuffer to $0dB$ to ensure consistent volume in the main DAW.Snap-to-Grid: If the BPM is known, allow the markers to "snap" to 1/16th note increments.Direct-to-Chopper: A "Send to Wave-Edit" button to pass the buffer without a file download.
+LAZERBLADE
+Browser-Native Digital Audio Slicer & Editor
+
+Lazerblade is a lightweight, zero-dependency digital audio workstation built for fast sample chopping and wave editing. Designed with a strict single-file architecture, it bypasses heavy modern frameworks in favor of raw HTML5, CSS3, and Vanilla JavaScript, executing all digital signal processing directly within the browser.
+
+Technical Details
+Audio Engine: Built on the native Web Audio API (AudioContext). It utilizes decodeAudioData for memory-efficient loading and custom Float32Array buffer manipulation for non-destructive cutting, copying, and pasting.
+
+Rendering System: The waveform visualization is driven by HTML5 <canvas> and synchronized with requestAnimationFrame for fluid, low-latency playhead tracking and zoom rendering.
+
+Zero-Dependency Architecture: Lazerblade requires no build steps, package managers, or server-side processing. It runs entirely client-side, making it ideal for offline use or low-spec hardware like Chromebooks.
+
+Client-Side Encoding: Standard 16-bit PCM RIFF WAV files are constructed purely in memory using JavaScript DataView. Multi-slice exports are packaged into ZIP archives dynamically by writing binary local file headers and central directory records directly to a Blob.
+
+UI/UX: The interface leverages a dark, hardware-inspired aesthetic with dynamic CSS variables (--accent-color) that map to user selections in real-time, completely avoiding external UI libraries.
+
+User Manual
+1. Basic Transport & Navigation
+Loading Audio: Click File > Open Audio... to load any supported audio file from your local disk.
+
+Playback: Use the PLAY and STOP buttons, or click anywhere on the waveform canvas to seek.
+
+Zoom & Scroll: Use the Mouse Wheel over the canvas to zoom in and out. Hold Shift + Mouse Wheel to scroll horizontally across the waveform.
+
+Zero-Cross Snapping: Enabled by default in the Select menu, this forces all selections and slice markers to snap to the nearest zero-crossing point to prevent audio clicks and pops.
+
+2. Loop Selection & Editing
+Selecting Audio: Click and drag the S (Start) or E (End) markers on the canvas to define your active window.
+
+Looping: Toggle the LOOP button to continuously cycle playback within your defined Start and End markers.
+
+Clipboard Operations: Open the Edit menu to Cut, Copy, or Paste audio buffer data. The Undo function supports up to 10 sequential history states.
+
+3. Chop Mode (Slicing)
+Toggle the CHOP button to switch from standard loop selection to multi-slice mode.
+
+Adding Markers: Click anywhere on the waveform to drop a numbered slice marker.
+
+Moving Markers: Click and drag an existing marker to adjust its position.
+
+Trigger Mode: Check the TRIGGER box to turn slice markers into playheads. Clicking near a marker will instantly play that specific slice.
+
+Deleting Markers: Check the DEL CHOP box, then click any existing marker to remove it.
+
+4. Exporting
+Export Selection: Available under File > Export Selection. This renders your currently selected window (between the Start and End markers) as a standard .wav file.
+
+Export Slices: Available under File > Export Slices (ZIP). This takes all active slice markers, splits the audio buffer at those points, encodes each slice as a distinct .wav file, and downloads them bundled within a .zip archive.
