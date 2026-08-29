@@ -3,203 +3,287 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LAZER BLADE 3 - Subzero Theme</title>
+    <title>AZ-9000 // Riced Edition</title>
     <style>
         @font-face { font-family: 'DATA'; src: url('data.ttf') format('truetype'), local('Courier New'), monospace; font-display: swap; }
         :root { 
-            --subzero-dark: #111215; 
-            --subzero-bg: #0a0b0d; 
-            --subzero-cyan: #00e5ff; 
-            --subzero-text: #b0bec5; 
-            --accent-magenta: #FF00FF; 
-            --warn-red: #ff2a2a;
+            --chassis-dark: #111111; 
+            --panel-bg: #1a1a1a; 
+            --text-main: #a3a3a3; 
+            --border-inset: #050505;
+            --border-outset: #2d2d2d;
+            
+            /* Dynamic Theme Color */
+            --accent-color: #00e5ff; 
+            --accent-dim: rgba(0, 229, 255, 0.1);
         }
+        
         body {
-            font-family: 'DATA', monospace; background-color: var(--subzero-bg); color: var(--subzero-text);
-            padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0;
-            text-shadow: 0 0 2px rgba(0, 229, 255, 0.5); overflow-x: hidden;
+            font-family: 'DATA', monospace; background-color: var(--chassis-dark); color: var(--text-main);
+            background-image: radial-gradient(var(--border-outset) 1px, transparent 0);
+            background-size: 6px 6px;
+            padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0;
             user-select: none;
         }
+        
         .container { 
-            width: 95vw; max-width: 960px; 
-            background-color: var(--subzero-dark); 
-            border: 2px solid #222327;
-            padding: 25px; 
-            box-shadow: 0 0 10px rgba(0,0,0,0.8);
+            width: 98vw; max-width: 1200px; 
+            background-color: var(--panel-bg); 
+            border: 2px solid var(--border-inset);
+            border-top: 2px solid var(--border-outset);
+            border-left: 2px solid var(--border-outset);
+            padding: 18px; 
+            box-shadow: 10px 10px 30px rgba(0,0,0,0.9);
             position: relative;
         }
-        .container::before, .container::after {
-            content: ''; position: absolute; width: 10px; height: 10px; border-radius: 50%; background: #333; border: 2px solid #222;
-        }
-        .container::before { top: 5px; left: 5px; } .container::after { top: 5px; right: 5px; }
 
-        #custom-header { 
-            font-family: 'DATA', sans-serif; text-align: left; margin-bottom: 25px; 
-            font-size: 1.8em; line-height: 1; letter-spacing: 1px; color: var(--subzero-cyan);
-            text-transform: uppercase;
+        .container::before, .container::after, .container-bottom-screws::before, .container-bottom-screws::after {
+            content: ''; position: absolute; width: 12px; height: 12px; border-radius: 50%; 
+            background: linear-gradient(135deg, #333, #000); border: 1px solid #000;
+            box-shadow: inset 0 0 2px #666;
         }
-        
-        #blinking-cursor { animation: blink 1s step-end infinite; color: var(--subzero-cyan); }
-        @keyframes blink { from, to { visibility: visible; } 50% { visibility: hidden; } }
+        .container::before { top: 8px; left: 8px; } .container::after { top: 8px; right: 8px; }
+        .container-bottom-screws::before { bottom: 8px; left: 8px; } .container-bottom-screws::after { bottom: 8px; right: 8px; }
 
-        .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
-        
-        button, #fileInputLabel, .toggle-container {
-            font-family: 'DATA', monospace; background-color: #1a1b1f; color: var(--subzero-text);
-            border: 2px solid #333; padding: 10px 15px; font-size: 14px; cursor: pointer;
-            text-transform: uppercase; flex: 1; text-align: center; transition: all 0.2s;
-            display: flex; justify-content: center; align-items: center;
-            letter-spacing: 1px; min-width: 100px;
+        .menu-bar {
+            display: flex; gap: 20px; background: #141414; padding: 8px 15px; 
+            border: 1px solid #000; border-bottom: 1px solid #222;
+            font-size: 13px; margin-bottom: 12px; align-items: center; position: relative;
         }
+        .menu-item { cursor: pointer; position: relative; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px; }
+        .menu-item:hover { color: var(--accent-color); }
         
-        button:hover:not(:disabled), #fileInputLabel:hover, .toggle-container:hover { 
-            background-color: #222327; color: var(--subzero-cyan); 
-            border-color: var(--subzero-cyan); box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+        .dropdown {
+            display: none; position: absolute; top: 100%; left: 0; background: #141414;
+            border: 1px solid var(--accent-color); min-width: 200px; z-index: 100;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.9);
         }
-        
-        #btnUndo:hover:not(:disabled) {
-            color: var(--warn-red); border-color: var(--warn-red); box-shadow: 0 0 10px rgba(255, 42, 42, 0.3);
+        .menu-item.active .dropdown { display: block; }
+        .dropdown-item {
+            padding: 12px 15px; font-size: 12px; color: var(--text-main); cursor: pointer; text-transform: uppercase;
+            border-bottom: 1px solid #0a0a0a;
         }
+        .dropdown-item:hover { background: #1c1c1c; color: var(--accent-color); }
+        .dropdown-item:disabled { opacity: 0.3; cursor: not-allowed; color: #555; }
 
-        button:disabled { opacity: 0.4; cursor: not-allowed; border-color: #222; }
+        .toolbar {
+            display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; align-items: center;
+            background: #141414; padding: 12px; border: 1px solid #000; box-shadow: inset 0 0 10px #000;
+        }
+        
+        button {
+            font-family: 'DATA', monospace; background-color: #1f1f1f; color: var(--text-main);
+            border: 1px solid #000; border-top: 1px solid #333; border-left: 1px solid #333;
+            padding: 10px 16px; font-size: 13px; cursor: pointer;
+            text-transform: uppercase; text-align: center; transition: all 0.1s;
+            display: flex; justify-content: center; align-items: center; letter-spacing: 1px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+        }
+        
+        button:hover:not(:disabled) { background-color: #262626; color: var(--accent-color); }
+        button:active:not(:disabled) { 
+            border: 1px solid #000; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.8);
+            color: var(--accent-color); background-color: #111;
+        }
+        button:disabled { opacity: 0.3; cursor: not-allowed; border-color: #111; box-shadow: none; }
+        
         #loadSampleInput { display: none; }
+
+        .time-display {
+            font-family: 'DATA', monospace; background: #050505; border: 2px solid #000;
+            color: var(--accent-color); padding: 8px 15px; font-size: 20px; letter-spacing: 3px;
+            box-shadow: inset 0 0 10px var(--accent-dim); text-shadow: 0 0 5px var(--accent-color);
+        }
+
+        .chop-controls {
+            display: none; align-items: center; gap: 15px; background: #080808; 
+            border: 1px solid #000; padding: 0 15px; font-size: 12px; height: 40px;
+            box-shadow: inset 0 0 5px #000;
+        }
+        .chop-controls.active { display: flex; }
         
         input[type="checkbox"] { 
-            accent-color: var(--subzero-cyan); margin-right: 10px; 
-            transform: scale(1.2); cursor: pointer; 
+            accent-color: var(--accent-color); transform: scale(1.2); cursor: pointer; 
+            background: #000; border: 1px solid var(--accent-color);
         }
 
-        .info { 
-            background: transparent; padding: 10px 0; 
-            border-top: 1px solid #333; border-bottom: 1px solid #333;
-            margin-bottom: 10px; font-size: 12px; 
-            display: flex; justify-content: space-between; color: var(--subzero-text);
-            letter-spacing: 0.5px;
+        .info-panel { 
+            background: #080808; padding: 10px 15px; 
+            border: 2px solid #000; box-shadow: inset 0 0 8px #000;
+            margin-bottom: 12px; font-size: 12px; 
+            display: flex; justify-content: space-between; color: #777;
         }
-        .info > div > span { color: var(--subzero-cyan); }
-        
-        .nav-help { font-size: 10px; color: var(--subzero-text); margin-bottom: 5px; text-align: right; width: 100%; opacity: 0.8; letter-spacing: 0.5px; }
-        
+        .info-panel span { color: var(--accent-color); text-shadow: 0 0 3px var(--accent-dim); }
+
         #waveformCanvas { 
-            width: 100%; height: 300px; 
-            background-color: #0a0b0d; 
-            border: 2px solid #222327;
+            width: 100%; height: 380px; 
+            background-color: #050505; 
+            border: 2px solid #000; border-bottom: 1px solid #222; border-right: 1px solid #222;
             cursor: crosshair; touch-action: none; 
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="custom-header">LAZER_BLADE_3 // SUBZERO<span id="blinking-cursor">_</span></div>
+    <div class="container-bottom-screws"></div>
     
-    <div class="controls">
-        <label id="fileInputLabel" for="loadSampleInput">INGEST</label>
-        <input type="file" id="loadSampleInput" accept="audio/*">
-        
-        <button id="loadSampleButton" disabled>PLAY</button>
-        <button id="btnCut" disabled>CUT</button>
-        <button id="btnCopy" disabled>COPY</button>
-        <button id="btnPaste" disabled>PASTE</button>
-        <button id="btnUndo" disabled>UNDO</button>
-        <button id="exportTrimButton" disabled>EXPORT</button>
+    <div class="menu-bar">
+        <div class="menu-item" onclick="toggleMenu(event, 'fileMenu')">File
+            <div id="fileMenu" class="dropdown">
+                <div class="dropdown-item" onclick="closeMenus(); document.getElementById('loadSampleInput').click()">Open Audio...</div>
+                <div class="dropdown-item" id="menuExport" onclick="closeMenus(); exportWav()" disabled>Export Selection</div>
+                <div class="dropdown-item" id="menuExportSlices" onclick="closeMenus(); exportSlices()" disabled>Export Slices (ZIP)</div>
+            </div>
+        </div>
+        <div class="menu-item" onclick="toggleMenu(event, 'editMenu')">Edit
+            <div id="editMenu" class="dropdown">
+                <div class="dropdown-item" id="menuUndo" onclick="closeMenus(); undo()" disabled>Undo</div>
+                <div class="dropdown-item" id="menuCut" onclick="closeMenus(); cutSelection()" disabled>Cut</div>
+                <div class="dropdown-item" id="menuCopy" onclick="closeMenus(); copySelection()" disabled>Copy</div>
+                <div class="dropdown-item" id="menuPaste" onclick="closeMenus(); pasteSelection()" disabled>Paste</div>
+            </div>
+        </div>
+        <div class="menu-item" onclick="toggleMenu(event, 'selectMenu')">Select
+            <div id="selectMenu" class="dropdown">
+                <div class="dropdown-item" id="menuZeroCross" onclick="closeMenus(); toggleZeroCross()">Zero Cross: ON</div>
+                <div class="dropdown-item" style="display:flex; justify-content:space-between; align-items:center;" onclick="event.stopPropagation();">
+                    Theme Color 
+                    <input type="color" id="themeColorPicker" value="#00e5ff" style="background:none; border:none; width:26px; height:26px; cursor:pointer; padding:0;">
+                </div>
+            </div>
+        </div>
+        <div class="menu-item" onclick="toggleMenu(event, 'viewMenu')">View
+            <div id="viewMenu" class="dropdown">
+                <div class="dropdown-item" onclick="closeMenus(); zoomIn()">Zoom In (+)</div>
+                <div class="dropdown-item" onclick="closeMenus(); zoomOut()">Zoom Out (-)</div>
+            </div>
+        </div>
     </div>
 
-    <div class="info">
-        <div>STATUS: <span id="status">READY</span></div>
-        <div>WINDOW: <span id="loopRangeDisplay">0.000S >> 0.000S</span></div>
+    <div class="toolbar">
+        <div class="time-display" id="timeDisplay">00:00:000</div>
+        <button id="btnPlay" disabled>► PLAY</button>
+        <button id="btnStop" disabled>■ STOP</button>
+        <button id="btnLoop" disabled>⟳ LOOP</button>
+        <button id="btnChopMode" disabled>✂ CHOP</button>
+        
+        <div class="chop-controls" id="chopControlsPanel">
+            <label style="display:flex; align-items:center; cursor:pointer; color: var(--text-main);">
+                <input type="checkbox" id="triggerModeCheck" style="margin-right:8px;"> TRIGGER
+            </label>
+            <label style="display:flex; align-items:center; cursor:pointer; color: var(--text-main);">
+                <input type="checkbox" id="deleteChopCheck" style="margin-right:8px;"> DEL CHOP
+            </label>
+        </div>
+
+        <input type="file" id="loadSampleInput" accept="audio/*">
+    </div>
+
+    <div class="info-panel">
+        <div>STATUS: <span id="status">AWAITING AUDIO</span></div>
+        <div>WINDOW: <span id="loopRangeDisplay">0.000S &gt;&gt; 0.000S</span></div>
         <div>ZOOM: <span id="zoomMag">1X</span> | AMP: <span id="ampMag">1.0X</span></div>
     </div>
     
-    <div class="nav-help">CTRL+UP/DN: ZOOM | SHIFT+UP/DN: GAIN | SCROLL: PAN</div>
     <canvas id="waveformCanvas"></canvas>
-    
-    <label class="toggle-container" style="margin-top:10px; border: none; background: none; justify-content: flex-start; padding: 0; font-size: 12px; color: var(--subzero-text);">
-        <input type="checkbox" id="snapToggle" checked style="transform: scale(1); margin-right: 5px;"> SNAP_ZERO
-    </label>
 </div>
 
 <script>
-    // --- GLOBAL STATE ---
     let audioCtx, audioBuf, sourceNode = null;
     let loopStart = 0, loopEnd = 0, currentPlayTime = 0;
     let isPlaying = false, isDragging = false, dragTarget = null;
     let zoomH = 1, scrollPos = 0, ampZoom = 1;
     let playbackStartTime = 0, aniFrame = null;
+    let isLoopingActive = true;
     
-    // History & Clipboard
+    let isZeroCross = true;
+    let isChopMode = false;
+    let isTriggerMode = false;
+    let isDeleteChopMode = false;
+    let sliceMarkers = []; 
+    let draggedSliceIndex = null;
+    let activeSliceStart = 0;
+
+    let currentThemeColor = "#00e5ff"; 
     let clipboardData = null;
     let undoStack = [];
     const MAX_UNDO = 10;
 
-    // --- DOM ELEMENTS ---
     const canvas = document.getElementById('waveformCanvas');
     const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
     const loopDisp = document.getElementById('loopRangeDisplay');
     const zoomMagDisp = document.getElementById('zoomMag');
     const ampMagDisp = document.getElementById('ampMag');
+    const timeDisplay = document.getElementById('timeDisplay');
     const input = document.getElementById('loadSampleInput');
-    const btnPlay = document.getElementById('loadSampleButton');
-    const btnCut = document.getElementById('btnCut');
-    const btnCopy = document.getElementById('btnCopy');
-    const btnPaste = document.getElementById('btnPaste');
-    const btnUndo = document.getElementById('btnUndo');
-    const btnExport = document.getElementById('exportTrimButton');
-    const snapToggle = document.getElementById('snapToggle');
+    
+    const btnPlay = document.getElementById('btnPlay');
+    const btnStop = document.getElementById('btnStop');
+    const btnLoop = document.getElementById('btnLoop');
+    const btnChopMode = document.getElementById('btnChopMode');
+    const chopControlsPanel = document.getElementById('chopControlsPanel');
+    const triggerModeCheck = document.getElementById('triggerModeCheck');
+    const deleteChopCheck = document.getElementById('deleteChopCheck');
+    const themeColorPicker = document.getElementById('themeColorPicker');
 
-    // --- AUDIO ENGINE ---
+    const menuUndo = document.getElementById('menuUndo');
+    const menuCut = document.getElementById('menuCut');
+    const menuCopy = document.getElementById('menuCopy');
+    const menuPaste = document.getElementById('menuPaste');
+    const menuExport = document.getElementById('menuExport');
+    const menuExportSlices = document.getElementById('menuExportSlices');
+    const menuZeroCross = document.getElementById('menuZeroCross');
+
+    function hexToRgba(hex, alpha) {
+        let r = parseInt(hex.slice(1, 3), 16),
+            g = parseInt(hex.slice(3, 5), 16),
+            b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    themeColorPicker.addEventListener('input', (e) => {
+        currentThemeColor = e.target.value;
+        document.documentElement.style.setProperty('--accent-color', currentThemeColor);
+        document.documentElement.style.setProperty('--accent-dim', hexToRgba(currentThemeColor, 0.15));
+        
+        if (isPlaying) btnPlay.style.color = currentThemeColor;
+        if (isLoopingActive) btnLoop.style.color = currentThemeColor;
+        if (isChopMode) btnChopMode.style.color = currentThemeColor;
+        
+        draw(currentPlayTime);
+    });
+
+    function closeMenus() {
+        document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+    }
+
+    function toggleMenu(e, menuId) {
+        if (e.target.classList.contains('dropdown-item')) return;
+        e.stopPropagation();
+        document.querySelectorAll('.dropdown').forEach(d => {
+            if (d.id !== menuId) d.parentElement.classList.remove('active');
+        });
+        e.currentTarget.classList.toggle('active');
+    }
+    
+    window.onclick = closeMenus;
+
+    function toggleZeroCross() {
+        isZeroCross = !isZeroCross;
+        menuZeroCross.innerText = `Zero Cross: ${isZeroCross ? 'ON' : 'OFF'}`;
+        menuZeroCross.style.color = isZeroCross ? 'var(--accent-color)' : 'var(--text-main)';
+    }
+
     function getAudioContext() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         return audioCtx;
     }
 
-    function startAudio(offset = 0) {
-        if (!audioBuf) return;
-        getAudioContext();
-        if (sourceNode) { sourceNode.stop(); sourceNode.disconnect(); }
-        
-        sourceNode = audioCtx.createBufferSource();
-        sourceNode.buffer = audioBuf;
-        sourceNode.loop = true;
-        sourceNode.loopStart = loopStart;
-        sourceNode.loopEnd = loopEnd;
-        sourceNode.connect(audioCtx.destination);
-        
-        let startPoint = offset;
-        if (startPoint < loopStart || startPoint > loopEnd) startPoint = loopStart;
-        
-        sourceNode.start(0, startPoint);
-        playbackStartTime = audioCtx.currentTime - (startPoint - loopStart);
-        currentPlayTime = startPoint;
-        isPlaying = true;
-        
-        btnPlay.textContent = "STOP";
-        btnPlay.style.borderColor = "var(--subzero-cyan)";
-        renderLoop();
-    }
-
-    function stopAudio() {
-        if (sourceNode) { sourceNode.stop(); sourceNode = null; }
-        isPlaying = false;
-        btnPlay.textContent = "PLAY";
-        btnPlay.style.borderColor = "";
-        cancelAnimationFrame(aniFrame);
-    }
-
-    function togglePlay() {
-        if (isPlaying) { stopAudio(); draw(); } else { startAudio(loopStart); }
-    }
-
-    function syncLoopPoints() {
-        if (sourceNode && isPlaying) {
-            sourceNode.loopStart = loopStart;
-            sourceNode.loopEnd = loopEnd;
-        }
-    }
-
     function findZeroCrossing(time) {
-        if (!audioBuf) return time;
+        if (!audioBuf || !isZeroCross) return time;
         const data = audioBuf.getChannelData(0);
         const centerIdx = Math.floor(time * audioBuf.sampleRate);
         const range = 500;
@@ -213,7 +297,110 @@
         return bestIdx / audioBuf.sampleRate;
     }
 
-    // --- VISUALIZATION HELPERS ---
+    function startAudio(offset = 0) {
+        if (!audioBuf) return;
+        getAudioContext();
+        if (sourceNode) { sourceNode.stop(); sourceNode.disconnect(); }
+        
+        sourceNode = audioCtx.createBufferSource();
+        sourceNode.buffer = audioBuf;
+
+        if (isChopMode && isTriggerMode) {
+            let sorted = [0, ...sliceMarkers.sort((a,b)=>a-b), audioBuf.duration];
+            let sStart = 0;
+            let sEnd = audioBuf.duration;
+            
+            for (let i = 0; i < sorted.length - 1; i++) {
+                if (offset >= sorted[i] - 0.0001 && offset < sorted[i+1]) {
+                    sStart = sorted[i];
+                    sEnd = sorted[i+1];
+                    break;
+                }
+            }
+
+            activeSliceStart = sStart;
+            sourceNode.loop = false;
+            sourceNode.connect(audioCtx.destination);
+            
+            let durationToPlay = sEnd - sStart;
+            if (durationToPlay <= 0) return;
+
+            sourceNode.start(0, sStart, durationToPlay);
+            
+            playbackStartTime = audioCtx.currentTime;
+            currentPlayTime = sStart;
+            isPlaying = true;
+            
+            sourceNode.onended = () => { if (isPlaying) stopAudio(); };
+        } else {
+            sourceNode.loop = isLoopingActive;
+            sourceNode.loopStart = loopStart;
+            sourceNode.loopEnd = loopEnd;
+            sourceNode.connect(audioCtx.destination);
+            
+            let startPoint = offset;
+            if (isLoopingActive && (startPoint < loopStart || startPoint > loopEnd)) startPoint = loopStart;
+            
+            sourceNode.start(0, startPoint);
+            playbackStartTime = audioCtx.currentTime - (startPoint - (isLoopingActive ? loopStart : 0));
+            currentPlayTime = startPoint;
+            isPlaying = true;
+        }
+        
+        btnPlay.style.color = "var(--accent-color)";
+        btnPlay.style.borderColor = "var(--accent-color)";
+        renderLoop();
+    }
+
+    function stopAudio() {
+        if (sourceNode) { sourceNode.stop(); sourceNode = null; }
+        isPlaying = false;
+        btnPlay.style.color = "";
+        btnPlay.style.borderColor = "";
+        cancelAnimationFrame(aniFrame);
+        draw(currentPlayTime);
+    }
+
+    btnPlay.onclick = () => { if (isPlaying) stopAudio(); else startAudio(currentPlayTime); };
+    btnStop.onclick = () => { stopAudio(); currentPlayTime = 0; draw(0); updateTimeDisplay(0); };
+    
+    btnLoop.onclick = () => {
+        isLoopingActive = !isLoopingActive;
+        btnLoop.style.color = isLoopingActive ? "var(--accent-color)" : "";
+        btnLoop.style.borderColor = isLoopingActive ? "var(--accent-color)" : "";
+        if (sourceNode && !isChopMode) { sourceNode.loop = isLoopingActive; sourceNode.loopStart = loopStart; sourceNode.loopEnd = loopEnd; }
+    };
+    btnLoop.style.color = "var(--accent-color)";
+    btnLoop.style.borderColor = "var(--accent-color)";
+
+    btnChopMode.onclick = () => {
+        isChopMode = !isChopMode;
+        btnChopMode.style.color = isChopMode ? "var(--accent-color)" : "";
+        btnChopMode.style.borderColor = isChopMode ? "var(--accent-color)" : "";
+        chopControlsPanel.classList.toggle('active', isChopMode);
+        if (isChopMode && sliceMarkers.length === 0 && audioBuf) {
+            sliceMarkers = [loopStart, loopEnd];
+        }
+        draw(currentPlayTime);
+    };
+
+    triggerModeCheck.onchange = (e) => isTriggerMode = e.target.checked;
+    deleteChopCheck.onchange = (e) => isDeleteChopMode = e.target.checked;
+
+    function updateTimeDisplay(timeSec) {
+        const mins = Math.floor(timeSec / 60).toString().padStart(2, '0');
+        const secs = Math.floor(timeSec % 60).toString().padStart(2, '0');
+        const millis = Math.floor((timeSec % 1) * 1000).toString().padStart(3, '0');
+        timeDisplay.textContent = `${mins}:${secs}:${millis}`;
+    }
+
+    function syncLoopPoints() {
+        if (sourceNode && isPlaying && !isChopMode) {
+            sourceNode.loopStart = loopStart;
+            sourceNode.loopEnd = loopEnd;
+        }
+    }
+
     function getVisibleData() {
         if (!audioBuf) return { startSmp: 0, visibleSamples: 0 };
         const visibleSamples = audioBuf.length / zoomH;
@@ -232,7 +419,6 @@
         return (((t * audioBuf.sampleRate) - startSmp) / visibleSamples) * canvas.width;
     }
 
-    // --- INTERACTION EVENT LISTENERS ---
     canvas.onwheel = (e) => {
         if (!audioBuf) return;
         e.preventDefault();
@@ -248,20 +434,69 @@
             const maxScroll = audioBuf.length - newVisible;
             scrollPos = maxScroll <= 0 ? 0 : Math.max(0, Math.min(1, newStartSmp / maxScroll));
         }
-        draw(isPlaying ? currentPlayTime : null); updateUI();
+        draw(currentPlayTime); updateUI();
     };
 
     canvas.onmousedown = (e) => {
         if (!audioBuf) return;
         let time = xToTime(e.offsetX);
-        if (snapToggle.checked) time = findZeroCrossing(time);
-        const tol = (20 / canvas.width) * (audioBuf.length / zoomH / audioBuf.sampleRate);
-        
+        const tol = (15 / canvas.width) * (audioBuf.length / zoomH / audioBuf.sampleRate);
+
+        if (isChopMode) {
+            let clickedMarkerIdx = -1;
+            for (let i = 0; i < sliceMarkers.length; i++) {
+                if (Math.abs(time - sliceMarkers[i]) < tol) {
+                    clickedMarkerIdx = i;
+                    break;
+                }
+            }
+
+            if (isDeleteChopMode) {
+                if (clickedMarkerIdx !== -1) {
+                    sliceMarkers.splice(clickedMarkerIdx, 1);
+                    draw(currentPlayTime);
+                }
+                return; 
+            }
+
+            if (clickedMarkerIdx !== -1) {
+                draggedSliceIndex = clickedMarkerIdx;
+                dragTarget = 'sliceMarker';
+                isDragging = true;
+            } else if (isTriggerMode) {
+                let sorted = [0, ...sliceMarkers.sort((a,b)=>a-b), audioBuf.duration];
+                let sStart = 0;
+                for (let i = 0; i < sorted.length - 1; i++) {
+                    if (time >= sorted[i] && time < sorted[i+1]) {
+                        sStart = sorted[i];
+                        break;
+                    }
+                }
+                currentPlayTime = Math.max(0, Math.min(audioBuf.duration, sStart));
+                if (isPlaying) stopAudio();
+                startAudio(currentPlayTime);
+                isDragging = false;
+            } else {
+                time = findZeroCrossing(time);
+                sliceMarkers.push(Math.max(0, Math.min(audioBuf.duration, time)));
+                sliceMarkers.sort((a, b) => a - b);
+                
+                draggedSliceIndex = sliceMarkers.indexOf(time);
+                dragTarget = 'sliceMarker';
+                isDragging = true;
+                draw(currentPlayTime);
+            }
+            return;
+        }
+
+        time = findZeroCrossing(time);
         if (Math.abs(time - loopStart) < tol) { dragTarget = 'start'; }
         else if (Math.abs(time - loopEnd) < tol) { dragTarget = 'end'; }
         else {
-            loopStart = time; loopEnd = time + 0.05; dragTarget = 'end';
-            if (isPlaying) { stopAudio(); startAudio(loopStart); }
+            currentPlayTime = Math.max(0, Math.min(audioBuf.duration, time));
+            if (isPlaying) { stopAudio(); startAudio(currentPlayTime); }
+            else { draw(currentPlayTime); updateTimeDisplay(currentPlayTime); }
+            dragTarget = 'seek';
         }
         isDragging = true;
     };
@@ -271,27 +506,38 @@
         const rect = canvas.getBoundingClientRect();
         const rawX = e.clientX - rect.left;
         let time = Math.max(0, Math.min(audioBuf.duration, xToTime(rawX)));
-        if (snapToggle.checked) time = findZeroCrossing(time);
         
-        if (dragTarget === 'start') { loopStart = Math.min(time, loopEnd - 0.001); }
-        else if (dragTarget === 'end') { loopEnd = Math.max(time, loopStart + 0.001); }
+        if (isChopMode && dragTarget === 'sliceMarker' && draggedSliceIndex !== null) {
+            time = findZeroCrossing(time);
+            sliceMarkers[draggedSliceIndex] = time;
+            sliceMarkers.sort((a, b) => a - b);
+            draggedSliceIndex = sliceMarkers.indexOf(time);
+        } else {
+            if (dragTarget === 'start') { 
+                time = findZeroCrossing(time);
+                loopStart = Math.min(time, loopEnd - 0.001); 
+            } else if (dragTarget === 'end') { 
+                time = findZeroCrossing(time);
+                loopEnd = Math.max(time, loopStart + 0.001); 
+            } else if (dragTarget === 'seek') {
+                currentPlayTime = time;
+                updateTimeDisplay(time);
+            }
+        }
         
-        if (isPlaying) {
-            // Re-anchor the playback start time relative to the new loopStart 
-            // so the visual playhead doesn't drift or jump due to changing duration
+        if (isPlaying && dragTarget !== 'seek' && !isTriggerMode) {
             let timeIntoLoop = currentPlayTime - loopStart;
             if (timeIntoLoop < 0) timeIntoLoop = 0;
             const dur = loopEnd - loopStart;
-            if (timeIntoLoop > dur) timeIntoLoop = dur;
+            if (dur > 0 && timeIntoLoop > dur) timeIntoLoop = dur;
             playbackStartTime = audioCtx.currentTime - timeIntoLoop;
         }
         
-        syncLoopPoints(); draw(isPlaying ? currentPlayTime : null); updateUI();
+        syncLoopPoints(); draw(currentPlayTime); updateUI();
     };
 
-    window.onmouseup = () => { isDragging = false; dragTarget = null; draw(isPlaying ? currentPlayTime : null); };
+    window.onmouseup = () => { isDragging = false; dragTarget = null; draggedSliceIndex = null; draw(currentPlayTime); };
 
-    // --- STATE MANAGEMENT & EDITING ---
     function cloneAudioBuffer(buf) {
         if (!buf) return null;
         const clone = audioCtx.createBuffer(buf.numberOfChannels, buf.length, buf.sampleRate);
@@ -305,27 +551,26 @@
         if (!audioBuf) return;
         undoStack.push(cloneAudioBuffer(audioBuf));
         if (undoStack.length > MAX_UNDO) undoStack.shift();
-        btnUndo.disabled = false;
+        menuUndo.disabled = false;
     }
 
-    btnUndo.onclick = () => {
+    function undo() {
         if (undoStack.length === 0) return;
         const wasPlaying = isPlaying;
         if (wasPlaying) stopAudio();
         
         audioBuf = undoStack.pop();
-        if (undoStack.length === 0) btnUndo.disabled = true;
+        if (undoStack.length === 0) menuUndo.disabled = true;
         
-        // Failsafe loop boundaries if restored buffer is shorter
         loopStart = Math.max(0, Math.min(loopStart, audioBuf.duration - 0.05));
         loopEnd = Math.max(0, Math.min(loopEnd, audioBuf.duration));
         
-        updateUI(); draw();
+        updateUI(); draw(currentPlayTime);
         status.textContent = "STATE REVERTED";
-        if (wasPlaying) startAudio(loopStart);
-    };
+        if (wasPlaying) startAudio(currentPlayTime);
+    }
 
-    btnCopy.onclick = () => {
+    function copySelection() {
         if (!audioBuf) return;
         const sSmp = Math.floor(loopStart * audioBuf.sampleRate);
         const eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
@@ -337,20 +582,20 @@
         for(let c=0; c<audioBuf.numberOfChannels; c++) {
             clipboardData.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp));
         }
-        btnPaste.disabled = false;
+        menuPaste.disabled = false;
         status.textContent = "COPIED TO CLIPBOARD";
-    };
+    }
 
-    btnCut.onclick = () => {
+    function cutSelection() {
         if (!audioBuf) return;
+        copySelection();
+        saveState();
+
         const sSmp = Math.floor(loopStart * audioBuf.sampleRate);
         const eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
         const len = audioBuf.length - (eSmp - sSmp);
         
         if (len <= 0) { status.textContent = "ERR: CANNOT CUT ENTIRE FILE"; return; }
-
-        btnCopy.onclick(); // Copy first
-        saveState();       // Snapshot for undo
 
         const newBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate);
         for(let c=0; c<audioBuf.numberOfChannels; c++) {
@@ -366,18 +611,16 @@
         audioBuf = newBuf;
         loopEnd = Math.min(loopStart + 0.05, audioBuf.duration);
         
-        updateUI(); draw();
+        updateUI(); draw(currentPlayTime);
         status.textContent = "CUT SELECTION";
         if (wasPlaying) startAudio(loopStart);
-    };
+    }
 
-    btnPaste.onclick = () => {
+    function pasteSelection() {
         if (!audioBuf || !clipboardData) return;
-        saveState(); // Snapshot for undo
+        saveState();
         
-        let insertTime = isPlaying ? currentPlayTime : loopStart;
-        const insertSmp = Math.floor(insertTime * audioBuf.sampleRate);
-        
+        const insertSmp = Math.floor(currentPlayTime * audioBuf.sampleRate);
         const newLen = audioBuf.length + clipboardData.length;
         const newBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, newLen, audioBuf.sampleRate);
         
@@ -395,25 +638,33 @@
         if (wasPlaying) stopAudio();
         
         audioBuf = newBuf;
-        loopStart = insertTime;
-        loopEnd = insertTime + clipboardData.duration;
+        loopStart = currentPlayTime;
+        loopEnd = currentPlayTime + clipboardData.duration;
         
-        updateUI(); draw();
+        updateUI(); draw(currentPlayTime);
         status.textContent = "PASTED AT PLAYHEAD";
         if (wasPlaying) startAudio(loopStart);
-    };
+    }
 
-    // --- DRAWING LOOP ---
+    function zoomIn() { zoomH = Math.min(50000, zoomH * 1.5); draw(currentPlayTime); updateUI(); }
+    function zoomOut() { zoomH = Math.max(1, zoomH / 1.5); draw(currentPlayTime); updateUI(); }
+
     function draw(now = null) {
         const w = canvas.width, h = canvas.height;
-        ctx.fillStyle = '#0a0b0d'; ctx.fillRect(0,0,w,h);
+        ctx.fillStyle = '#050505'; ctx.fillRect(0,0,w,h);
+
         if (!audioBuf) return;
         
         const data = audioBuf.getChannelData(0);
         const { startSmp, visibleSamples } = getVisibleData();
         const step = Math.max(1, visibleSamples / w);
+        const channelHeight = h;
+        const yOffset = 0;
         
-        ctx.beginPath(); ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 1;
+        ctx.beginPath(); 
+        ctx.strokeStyle = currentThemeColor; 
+        ctx.lineWidth = 1;
+
         for (let i = 0; i < w; i++) {
             const b = Math.floor(startSmp + (i * step));
             if (b >= data.length) break;
@@ -421,23 +672,43 @@
             for(let j=0; j<step; j++) {
                 const v = data[b+j] || 0; if(v<min) min=v; if(v>max) max=v;
             }
-            const yMin = (1 + min * ampZoom) * h / 2;
-            const yMax = (1 + max * ampZoom) * h / 2;
+            const yMin = yOffset + (1 + min * ampZoom) * channelHeight / 2;
+            const yMax = yOffset + (1 + max * ampZoom) * channelHeight / 2;
             ctx.moveTo(i, yMin); ctx.lineTo(i, yMax);
         }
         ctx.stroke();
-        
-        const sX = timeToX(loopStart), eX = timeToX(loopEnd);
-        ctx.fillStyle = 'rgba(0, 229, 255, 0.1)'; ctx.fillRect(sX, 0, eX - sX, h);
-        ctx.strokeStyle = '#00e5ff'; ctx.strokeRect(sX, 0, 1, h);
-        ctx.fillStyle = '#00e5ff'; ctx.fillRect(sX-5, 0, 10, 12);
-        ctx.strokeStyle = '#FF00FF'; ctx.strokeRect(eX, 0, 1, h);
-        ctx.fillStyle = '#FF00FF'; ctx.fillRect(eX-5, h-12, 10, 12);
+
+        if (isChopMode) {
+            for (let i = 0; i < sliceMarkers.length; i++) {
+                let mX = timeToX(sliceMarkers[i]);
+                ctx.strokeStyle = currentThemeColor;
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(mX, 0); ctx.lineTo(mX, h); ctx.stroke();
+
+                ctx.fillStyle = currentThemeColor;
+                ctx.fillRect(mX - 6, 0, 12, 14);
+                ctx.fillStyle = '#000';
+                ctx.font = '9px DATA';
+                ctx.fillText(`${i+1}`, mX - 3, 11);
+            }
+        } else {
+            const sX = timeToX(loopStart), eX = timeToX(loopEnd);
+            
+            // Start Marker (Inverted: Black text on theme color)
+            ctx.strokeStyle = currentThemeColor; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(sX, 0); ctx.lineTo(sX, h); ctx.stroke();
+            ctx.fillStyle = currentThemeColor; ctx.fillRect(sX-6, 0, 12, 14);
+            ctx.fillStyle = '#000'; ctx.font = '10px DATA'; ctx.fillText('S', sX-3, 11);
+            
+            // End Marker (Inverted: Black text on white)
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(eX, 0); ctx.lineTo(eX, h); ctx.stroke();
+            ctx.fillStyle = '#fff'; ctx.fillRect(eX-6, h-14, 12, 14);
+            ctx.fillStyle = '#000'; ctx.font = '10px DATA'; ctx.fillText('E', eX-3, h-3);
+        }
         
         if (now !== null) {
             const pX = timeToX(now);
             if (pX >= 0 && pX <= w) {
-                ctx.strokeStyle = '#FF00FF'; ctx.lineWidth = 2; ctx.beginPath();
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath();
                 ctx.moveTo(pX, 0); ctx.lineTo(pX, h); ctx.stroke();
             }
         }
@@ -445,20 +716,29 @@
 
     function renderLoop() {
         if (!isPlaying) return;
+        
+        if (isChopMode && isTriggerMode) {
+            let elapsed = audioCtx.currentTime - playbackStartTime;
+            currentPlayTime = activeSliceStart + elapsed;
+            draw(currentPlayTime);
+            updateTimeDisplay(currentPlayTime);
+            if (isPlaying) aniFrame = requestAnimationFrame(renderLoop);
+            return;
+        }
+
         const dur = loopEnd - loopStart;
         if (dur <= 0) return;
         
-        // Exact elapsed calculation
         let elapsed = audioCtx.currentTime - playbackStartTime;
-        currentPlayTime = loopStart + (elapsed % dur);
+        currentPlayTime = isLoopingActive ? loopStart + (elapsed % dur) : currentPlayTime + (audioCtx.currentTime - playbackStartTime);
         
-        // Failsafe in case of aggressive bound manipulation
-        if (currentPlayTime < loopStart || currentPlayTime > loopEnd) {
+        if (isLoopingActive && (currentPlayTime < loopStart || currentPlayTime > loopEnd)) {
             currentPlayTime = loopStart;
             playbackStartTime = audioCtx.currentTime;
         }
 
         draw(currentPlayTime);
+        updateTimeDisplay(currentPlayTime);
         aniFrame = requestAnimationFrame(renderLoop);
     }
 
@@ -469,7 +749,6 @@
         ampMagDisp.textContent = `${ampZoom.toFixed(1)}X`;
     }
 
-    // --- FILE HANDLING & EXPORT ---
     async function handleFile(e) {
         const file = e.target.files[0]; if (!file) return;
         getAudioContext(); status.textContent = 'SCANNING...';
@@ -478,11 +757,16 @@
             audioBuf = await audioCtx.decodeAudioData(ab);
             loopStart = 0; loopEnd = audioBuf.duration;
             zoomH = 1; scrollPos = 0; currentPlayTime = 0;
-            undoStack = []; btnUndo.disabled = true;
+            undoStack = []; sliceMarkers = [];
+            
+            menuUndo.disabled = true;
+            menuCut.disabled = false; menuCopy.disabled = false;
+            menuExport.disabled = false; menuExportSlices.disabled = false;
+            btnPlay.disabled = false; btnStop.disabled = false; 
+            btnLoop.disabled = false; btnChopMode.disabled = false;
+
             status.textContent = `READY: ${file.name.toUpperCase()}`;
-            btnPlay.disabled = false; btnExport.disabled = false;
-            btnCut.disabled = false; btnCopy.disabled = false;
-            updateUI(); draw();
+            updateUI(); draw(0); updateTimeDisplay(0);
         } catch (err) { status.textContent = "ERR: FILE_CORRUPT"; }
     }
 
@@ -498,7 +782,7 @@
         return ab;
     }
 
-    btnExport.onclick = () => {
+    function exportWav() {
         if (!audioBuf) return;
         const sSmp = Math.floor(loopStart * audioBuf.sampleRate), eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
         const len = eSmp - sSmp;
@@ -507,13 +791,83 @@
         for(let c=0; c<audioBuf.numberOfChannels; c++) { nBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); }
         const wav = encodeWAV(nBuf);
         const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([wav], {type:'audio/wav'}));
-        a.download = `LB3_${Date.now()}.wav`; a.click();
-    };
+        a.download = `AZ9000_${Date.now()}.wav`; a.click();
+    }
 
-    input.onchange = handleFile;    
-    btnPlay.onclick = togglePlay;    
-    window.onload = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; draw(); };    
-    window.onresize = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; draw(isPlaying ? currentPlayTime : null); };
+    async function exportSlices() {
+        if (!audioBuf || sliceMarkers.length === 0) {
+            alert("No slice points defined."); return;
+        }
+
+        let sortedSlices = [0, ...sliceMarkers.sort((a,b)=>a-b), audioBuf.duration];
+        let sliceBlobs = [];
+
+        for (let i = 0; i < sortedSlices.length - 1; i++) {
+            let sSmp = Math.floor(sortedSlices[i] * audioBuf.sampleRate);
+            let eSmp = Math.floor(sortedSlices[i+1] * audioBuf.sampleRate);
+            let len = eSmp - sSmp;
+            if (len <= 0) continue;
+
+            let nBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate);
+            for(let c=0; c<audioBuf.numberOfChannels; c++) {
+                nBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp));
+            }
+            let wav = encodeWAV(nBuf);
+            sliceBlobs.push({ name: `slice_${i+1}.wav`, data: wav });
+        }
+
+        let zipParts = [], centralDirectory = [], offset = 0;
+
+        for (let slice of sliceBlobs) {
+            let encName = new TextEncoder().encode(slice.name);
+            let data = slice.data, crc = 0;
+
+            let header = new Uint8Array(30 + encName.length);
+            let view = new DataView(header.buffer);
+            view.setUint32(0, 0x04034b50, true); view.setUint16(4, 10, true);
+            view.setUint16(6, 0, true); view.setUint16(8, 0, true);
+            view.setUint16(10, 0, true); view.setUint16(12, 0, true);
+            view.setUint32(14, crc, true); view.setUint32(18, data.byteLength, true);
+            view.setUint32(22, data.byteLength, true); view.setUint16(26, encName.length, true);
+            view.setUint16(28, 0, true); header.set(encName, 30);
+            zipParts.push(header); zipParts.push(data);
+
+            let cdHeader = new Uint8Array(46 + encName.length);
+            let cdView = new DataView(cdHeader.buffer);
+            cdView.setUint32(0, 0x02014b50, true); cdView.setUint16(4, 20, true);
+            cdView.setUint16(6, 10, true); cdView.setUint16(8, 0, true);
+            cdView.setUint16(10, 0, true); cdView.setUint16(12, 0, true);
+            cdView.setUint16(14, 0, true); cdView.setUint32(16, crc, true);
+            cdView.setUint32(20, data.byteLength, true); cdView.setUint32(24, data.byteLength, true);
+            cdView.setUint16(28, encName.length, true); cdView.setUint16(30, 0, true);
+            cdView.setUint16(32, 0, true); cdView.setUint16(34, 0, true);
+            cdView.setUint16(36, 0, true); cdView.setUint32(38, 0, true);
+            cdView.setUint32(42, offset, true); cdHeader.set(encName, 46);
+            centralDirectory.push(cdHeader);
+            offset += header.byteLength + data.byteLength;
+        }
+
+        let cdSize = centralDirectory.reduce((acc, part) => acc + part.byteLength, 0);
+        let eocd = new Uint8Array(22);
+        let eocdView = new DataView(eocd.buffer);
+        eocdView.setUint32(0, 0x06054b50, true); eocdView.setUint16(4, 0, true);
+        eocdView.setUint16(6, 0, true); eocdView.setUint16(8, sliceBlobs.length, true);
+        eocdView.setUint16(10, sliceBlobs.length, true); eocdView.setUint32(12, cdSize, true);
+        eocdView.setUint32(16, offset, true); eocdView.setUint16(20, 0, true);
+
+        let finalZip = [...zipParts, ...centralDirectory, eocd];
+        let zipBlob = new Blob(finalZip, { type: 'application/zip' });
+        
+        let a = document.createElement('a');
+        a.href = URL.createObjectURL(zipBlob);
+        a.download = `AZ9000_Slices_${Date.now()}.zip`;
+        a.click();
+        status.textContent = "SLICES EXPORTED";
+    }
+
+    input.onchange = handleFile;
+    window.onload = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; draw(); };
+    window.onresize = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; draw(currentPlayTime); };
 </script>
 </body>
 </html>
