@@ -104,6 +104,13 @@
             box-shadow: 2px 2px 5px rgba(0,0,0,0.7), inset 0 0 4px rgba(0,0,0,0.4);
             transition: all 0.05s;
         }
+
+        .rubber-btn svg {
+            fill: currentColor;
+            width: 16px;
+            height: 16px;
+            pointer-events: none;
+        }
         
         .rubber-btn:hover:not(:disabled) { 
             color: var(--accent-color); 
@@ -198,10 +205,24 @@
         <div class="time-display" id="timeDisplay">00:00:000</div>
         
         <div class="transport-recess">
-            <button id="btnPlay" class="rubber-btn" title="Play" disabled>►</button>
-            <button id="btnStop" class="rubber-btn" title="Stop" disabled>■</button>
-            <button id="btnLoop" class="rubber-btn" title="Loop" disabled>⟳</button>
-            <button id="btnChopMode" class="rubber-btn" title="Chop Mode" disabled>✂</button>
+            <!-- Play SVG Icon -->
+            <button id="btnPlay" class="rubber-btn" title="Play" disabled>
+                <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"></polygon></svg>
+            </button>
+            <!-- Stop SVG Icon -->
+            <button id="btnStop" class="rubber-btn" title="Stop" disabled>
+                <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16"></rect></svg>
+            </button>
+            <!-- Loop SVG Icon (Infinity) -->
+            <button id="btnLoop" class="rubber-btn" title="Loop" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"/>
+                </svg>
+            </button>
+            <!-- Chop SVG Icon -->
+            <button id="btnChopMode" class="rubber-btn" title="Chop Mode" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>
+            </button>
         </div>
         
         <div class="chop-controls" id="chopControlsPanel">
