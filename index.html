@@ -128,6 +128,15 @@
         .rubber-btn:disabled { 
             opacity: 0.2; cursor: not-allowed; border-top: 1px solid #111; box-shadow: none; 
         }
+        
+        button.text-btn {
+            font-family: 'DATA', monospace; background-color: #1f1f1f; color: var(--text-main);
+            border: 1px solid #000; border-top: 1px solid #333; border-left: 1px solid #333;
+            padding: 8px 12px; font-size: 13px; cursor: pointer; text-transform: uppercase;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+        }
+        button.text-btn:hover:not(:disabled) { background-color: #262626; color: var(--accent-color); }
+        button.text-btn:active:not(:disabled) { box-shadow: inset 2px 2px 5px rgba(0,0,0,0.8); color: var(--accent-color); background-color: #111; }
 
         .chop-controls {
             display: none; align-items: center; gap: 15px; background: #080808; 
@@ -158,6 +167,22 @@
         }
         
         #loadSampleInput { display: none; }
+
+        /* Amplify Modal */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-box {
+            background: var(--panel-bg); border: 2px solid var(--border-inset);
+            border-top: 2px solid var(--border-outset); border-left: 2px solid var(--border-outset);
+            padding: 20px; width: 300px; display: flex; flex-direction: column; gap: 15px;
+            box-shadow: 10px 10px 30px #000; font-size: 12px;
+        }
+        .modal-title { color: var(--accent-color); font-size: 16px; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 5px; }
+        .slider-container { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+        input[type=range] { width: 100%; accent-color: var(--accent-color); cursor: pointer; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: space-between; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -179,13 +204,15 @@
                 <div class="dropdown-item" id="menuCut" onclick="closeMenus(); cutSelection()" disabled>Cut</div>
                 <div class="dropdown-item" id="menuCopy" onclick="closeMenus(); copySelection()" disabled>Copy</div>
                 <div class="dropdown-item" id="menuPaste" onclick="closeMenus(); pasteSelection()" disabled>Paste</div>
-                <div class="dropdown-item" id="menuFadeIn" onclick="closeMenus(); fadeInSelection()" disabled>Fade In</div>
-                <div class="dropdown-item" id="menuFadeOut" onclick="closeMenus(); fadeOutSelection()" disabled>Fade Out</div>
+                <div class="dropdown-item" id="menuSilence" onclick="closeMenus(); silenceSelection()" disabled>Silence Region</div>
+                <div class="dropdown-item" id="menuAmplify" onclick="closeMenus(); openAmplifyModal()" disabled>Amplify Region...</div>
+                <div class="dropdown-item" id="menuFadeIn" onclick="closeMenus(); fadeInSelection()" disabled>Fade In Region</div>
+                <div class="dropdown-item" id="menuFadeOut" onclick="closeMenus(); fadeOutSelection()" disabled>Fade Out Region</div>
             </div>
         </div>
         <div class="menu-item" onclick="toggleMenu(event, 'selectMenu')">Select
             <div id="selectMenu" class="dropdown">
-                <div class="dropdown-item" id="menuSelectionMode" onclick="closeMenus(); toggleSelectionMode()">Drag Mode: Playhead</div>
+                <div class="dropdown-item" id="menuSelectionMode" onclick="event.stopPropagation(); toggleSelectionMode()">Drag Mode: Playhead</div>
                 <div class="dropdown-item" id="menuZeroCross" onclick="closeMenus(); toggleZeroCross()">Zero Cross: ON</div>
                 <div class="dropdown-item" style="display:flex; justify-content:space-between; align-items:center;" onclick="event.stopPropagation();">
                     Theme Color 
@@ -205,21 +232,17 @@
         <div class="time-display" id="timeDisplay">00:00:000</div>
         
         <div class="transport-recess">
-            <!-- Play SVG Icon -->
             <button id="btnPlay" class="rubber-btn" title="Play" disabled>
                 <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"></polygon></svg>
             </button>
-            <!-- Stop SVG Icon -->
             <button id="btnStop" class="rubber-btn" title="Stop" disabled>
                 <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16"></rect></svg>
             </button>
-            <!-- Loop SVG Icon (Infinity) -->
             <button id="btnLoop" class="rubber-btn" title="Loop" disabled>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"/>
                 </svg>
             </button>
-            <!-- Chop SVG Icon -->
             <button id="btnChopMode" class="rubber-btn" title="Chop Mode" disabled>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>
             </button>
@@ -246,8 +269,24 @@
     <canvas id="waveformCanvas"></canvas>
 </div>
 
+<!-- Amplify Modal -->
+<div id="amplifyModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-title">AMPLIFY REGION</div>
+        <div class="slider-container">
+            <input type="range" id="ampSlider" min="0" max="200" value="100">
+            <div style="color: var(--accent-color); font-size: 16px;" id="ampValueVal">1.00x</div>
+        </div>
+        <div class="modal-buttons">
+            <button class="text-btn" id="btnPreviewAmp" style="flex:1;">PREVIEW</button>
+            <button class="text-btn" id="btnApplyAmp" style="flex:1;">APPLY</button>
+            <button class="text-btn" onclick="closeAmplifyModal()">CANCEL</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    let audioCtx, audioBuf, sourceNode = null;
+    let audioCtx, audioBuf, sourceNode = null, masterGain = null;
     let loopStart = 0, loopEnd = 0, currentPlayTime = 0;
     let isPlaying = false, isDragging = false, dragTarget = null;
     let zoomH = 1, scrollPos = 0, ampZoom = 1;
@@ -265,6 +304,9 @@
 
     let isQuickSelectMode = false;
     let selectOriginTime = 0;
+
+    // Amplify State
+    let isPreviewingAmp = false;
 
     let currentThemeColor = "#00e5ff"; 
     let clipboardData = null;
@@ -293,12 +335,21 @@
     const menuCut = document.getElementById('menuCut');
     const menuCopy = document.getElementById('menuCopy');
     const menuPaste = document.getElementById('menuPaste');
+    const menuSilence = document.getElementById('menuSilence');
+    const menuAmplify = document.getElementById('menuAmplify');
     const menuFadeIn = document.getElementById('menuFadeIn');
     const menuFadeOut = document.getElementById('menuFadeOut');
     const menuExport = document.getElementById('menuExport');
     const menuExportSlices = document.getElementById('menuExportSlices');
     const menuZeroCross = document.getElementById('menuZeroCross');
     const menuSelectionMode = document.getElementById('menuSelectionMode');
+
+    // Amplify Elements
+    const amplifyModal = document.getElementById('amplifyModal');
+    const ampSlider = document.getElementById('ampSlider');
+    const ampValueVal = document.getElementById('ampValueVal');
+    const btnPreviewAmp = document.getElementById('btnPreviewAmp');
+    const btnApplyAmp = document.getElementById('btnApplyAmp');
 
     function hexToRgba(hex, alpha) {
         let r = parseInt(hex.slice(1, 3), 16),
@@ -316,6 +367,7 @@
         if (isLoopingActive) btnLoop.style.color = currentThemeColor;
         if (isChopMode) btnChopMode.style.color = currentThemeColor;
         if (isQuickSelectMode) menuSelectionMode.style.color = currentThemeColor;
+        if (isPreviewingAmp) btnPreviewAmp.style.color = currentThemeColor;
         
         draw(currentPlayTime);
     });
@@ -348,7 +400,11 @@
     }
 
     function getAudioContext() {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            masterGain = audioCtx.createGain();
+            masterGain.connect(audioCtx.destination);
+        }
         return audioCtx;
     }
 
@@ -375,6 +431,8 @@
         sourceNode = audioCtx.createBufferSource();
         sourceNode.buffer = audioBuf;
 
+        sourceNode.connect(masterGain);
+
         if (isChopMode && isTriggerMode) {
             let sorted = [0, ...sliceMarkers.sort((a,b)=>a-b), audioBuf.duration];
             let sStart = 0, sEnd = audioBuf.duration;
@@ -387,7 +445,6 @@
 
             activeSliceStart = sStart;
             sourceNode.loop = false;
-            sourceNode.connect(audioCtx.destination);
             
             let durationToPlay = sEnd - sStart;
             if (durationToPlay <= 0) return;
@@ -401,7 +458,6 @@
             sourceNode.loop = isLoopingActive;
             sourceNode.loopStart = loopStart;
             sourceNode.loopEnd = loopEnd;
-            sourceNode.connect(audioCtx.destination);
             
             let startPoint = offset;
             if (isLoopingActive && (startPoint < loopStart || startPoint > loopEnd)) {
@@ -425,6 +481,13 @@
     function stopAudio() {
         if (sourceNode) { sourceNode.stop(); sourceNode = null; }
         isPlaying = false;
+        
+        if (isPreviewingAmp) {
+            isPreviewingAmp = false;
+            masterGain.gain.value = 1.0;
+            btnPreviewAmp.style.color = "";
+        }
+
         btnPlay.style.color = "";
         cancelAnimationFrame(aniFrame);
         draw(currentPlayTime);
@@ -568,11 +631,6 @@
             dragTarget = 'quickSelect';
             isDragging = true;
             
-            wasPlayingBeforeDrag = isPlaying;
-            if (isPlaying) stopAudio();
-            
-            currentPlayTime = time;
-            updateTimeDisplay(currentPlayTime);
             draw(currentPlayTime); 
             return;
         }
@@ -762,6 +820,89 @@
         if (wasPlaying) startAudio(loopStart);
     }
 
+    function silenceSelection() {
+        if (!audioBuf) return;
+        saveState();
+
+        const sSmp = Math.floor(loopStart * audioBuf.sampleRate);
+        const eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
+        const len = eSmp - sSmp;
+        if (len <= 0) return;
+
+        for (let c = 0; c < audioBuf.numberOfChannels; c++) {
+            const data = audioBuf.getChannelData(c);
+            for (let i = 0; i < len; i++) {
+                data[sSmp + i] = 0; 
+            }
+        }
+        
+        draw(currentPlayTime);
+        status.textContent = "REGION SILENCED";
+    }
+
+    function openAmplifyModal() {
+        if (!audioBuf) return;
+        ampSlider.value = 100;
+        ampValueVal.innerText = "1.00x";
+        amplifyModal.style.display = 'flex';
+    }
+
+    function closeAmplifyModal() {
+        amplifyModal.style.display = 'none';
+        if (isPreviewingAmp) {
+            stopAudio();
+        }
+    }
+
+    ampSlider.oninput = (e) => {
+        let mult = e.target.value / 100;
+        ampValueVal.innerText = mult.toFixed(2) + "x";
+        if (masterGain && isPreviewingAmp) {
+            masterGain.gain.value = mult;
+        }
+    };
+
+    btnPreviewAmp.onclick = () => {
+        if (isPreviewingAmp) {
+            stopAudio();
+        } else {
+            getAudioContext();
+            isPreviewingAmp = true;
+            masterGain.gain.value = ampSlider.value / 100;
+            
+            let tempLoop = isLoopingActive;
+            isLoopingActive = true;
+            startAudio(loopStart);
+            isLoopingActive = tempLoop;
+            
+            btnPreviewAmp.style.color = currentThemeColor;
+        }
+    };
+
+    btnApplyAmp.onclick = () => {
+        if (!audioBuf) return;
+        
+        let mult = ampSlider.value / 100;
+        if (mult === 1.0) { closeAmplifyModal(); return; }
+
+        saveState();
+
+        const sSmp = Math.floor(loopStart * audioBuf.sampleRate);
+        const eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
+        const len = eSmp - sSmp;
+        
+        for (let c = 0; c < audioBuf.numberOfChannels; c++) {
+            const data = audioBuf.getChannelData(c);
+            for (let i = 0; i < len; i++) {
+                data[sSmp + i] *= mult; 
+            }
+        }
+        
+        closeAmplifyModal();
+        draw(currentPlayTime);
+        status.textContent = `AMPLIFIED REGION BY ${mult.toFixed(2)}x`;
+    };
+
     function fadeInSelection() {
         if (!audioBuf) return;
         saveState();
@@ -939,6 +1080,7 @@
             menuUndo.disabled = true;
             menuCut.disabled = false; menuCopy.disabled = false;
             menuExport.disabled = false; menuExportSlices.disabled = false;
+            menuSilence.disabled = false; menuAmplify.disabled = false;
             menuFadeIn.disabled = false; menuFadeOut.disabled = false;
             btnPlay.disabled = false; btnStop.disabled = false; 
             btnLoop.disabled = false; btnChopMode.disabled = false;
