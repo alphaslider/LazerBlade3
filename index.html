@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AZ-9000 // Riced Edition</title>
+    <title>AZ-9000 // Replace Edition + Trim + Scroll + BPM Sense</title>
     <style>
         @font-face { font-family: 'DATA'; src: url('data.ttf') format('truetype'), local('Courier New'), monospace; font-display: swap; }
         :root { 
@@ -12,8 +13,6 @@
             --text-main: #a3a3a3; 
             --border-inset: #050505;
             --border-outset: #2d2d2d;
-            
-            /* Dynamic Theme Color */
             --accent-color: #00e5ff; 
             --accent-dim: rgba(0, 229, 255, 0.1);
         }
@@ -29,160 +28,155 @@
         .container { 
             width: 98vw; max-width: 1200px; 
             background-color: var(--panel-bg); 
-            border: 2px solid var(--border-inset);
-            border-top: 2px solid var(--border-outset);
-            border-left: 2px solid var(--border-outset);
-            padding: 18px; 
-            box-shadow: 10px 10px 30px rgba(0,0,0,0.9);
-            position: relative;
+            border: 2px solid var(--border-inset); border-top: 2px solid var(--border-outset); border-left: 2px solid var(--border-outset);
+            padding: 18px; box-shadow: 10px 10px 30px rgba(0,0,0,0.9); position: relative;
         }
 
         .container::before, .container::after, .container-bottom-screws::before, .container-bottom-screws::after {
             content: ''; position: absolute; width: 12px; height: 12px; border-radius: 50%; 
-            background: linear-gradient(135deg, #333, #000); border: 1px solid #000;
-            box-shadow: inset 0 0 2px #666;
+            background: linear-gradient(135deg, #333, #000); border: 1px solid #000; box-shadow: inset 0 0 2px #666;
         }
         .container::before { top: 8px; left: 8px; } .container::after { top: 8px; right: 8px; }
         .container-bottom-screws::before { bottom: 8px; left: 8px; } .container-bottom-screws::after { bottom: 8px; right: 8px; }
 
         .menu-bar {
             display: flex; gap: 20px; background: #141414; padding: 8px 15px; 
-            border: 1px solid #000; border-bottom: 1px solid #222;
-            font-size: 13px; margin-bottom: 12px; align-items: center; position: relative;
+            border: 1px solid #000; border-bottom: 1px solid #222; font-size: 13px; margin-bottom: 12px; align-items: center; position: relative;
         }
         .menu-item { cursor: pointer; position: relative; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px; }
         .menu-item:hover { color: var(--accent-color); }
         
+        /* Animated Dropdown Logic */
         .dropdown {
-            display: none; position: absolute; top: 100%; left: 0; background: #141414;
-            border: 1px solid var(--accent-color); min-width: 200px; z-index: 100;
-            box-shadow: 5px 5px 15px rgba(0,0,0,0.9);
+            opacity: 0; visibility: hidden; transform: translateY(-10px);
+            position: absolute; top: 100%; left: 0; background: #141414;
+            border: 1px solid var(--accent-color); min-width: 200px; z-index: 100; box-shadow: 5px 5px 15px rgba(0,0,0,0.9);
+            transition: all 0.15s cubic-bezier(0.2, 0, 0, 1);
         }
-        .menu-item.active .dropdown { display: block; }
-        .dropdown-item {
-            padding: 12px 15px; font-size: 12px; color: var(--text-main); cursor: pointer; text-transform: uppercase;
-            border-bottom: 1px solid #0a0a0a;
-        }
+        .menu-item.active .dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
+        
+        .dropdown-item { padding: 12px 15px; font-size: 12px; color: var(--text-main); cursor: pointer; text-transform: uppercase; border-bottom: 1px solid #0a0a0a; }
         .dropdown-item:hover { background: #1c1c1c; color: var(--accent-color); }
         .dropdown-item:disabled { opacity: 0.3; cursor: not-allowed; color: #555; }
 
-        .toolbar {
-            display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; align-items: center;
-            background: #141414; padding: 12px; border: 1px solid #000; box-shadow: inset 0 0 10px #000;
-        }
+        .toolbar { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; align-items: center; background: #141414; padding: 12px; border: 1px solid #000; box-shadow: inset 0 0 10px #000; }
         
         .time-display {
             font-family: 'DATA', monospace; background: #050505; border: 2px solid #000;
-            color: var(--accent-color); padding: 8px 15px; font-size: 20px; letter-spacing: 3px;
-            box-shadow: inset 0 0 10px var(--accent-dim); text-shadow: 0 0 5px var(--accent-color);
+            color: var(--accent-color); padding: 8px 15px; font-size: 20px; letter-spacing: 3px; box-shadow: inset 0 0 10px var(--accent-dim); text-shadow: 0 0 5px var(--accent-color);
         }
 
+        .bpm-control {
+            display: none; align-items: center; gap: 5px; font-family: 'DATA', monospace;
+            color: var(--accent-color); background: #050505; border: 2px solid #000;
+            padding: 8px 10px; box-shadow: inset 0 0 10px var(--accent-dim);
+        }
+        .bpm-control.active { display: flex; }
+        .bpm-control input {
+            background: transparent; border: none; color: var(--accent-color); font-family: 'DATA', monospace;
+            font-size: 18px; width: 45px; outline: none; text-shadow: 0 0 5px var(--accent-color); text-align: right;
+        }
+        .bpm-control input::-webkit-outer-spin-button, .bpm-control input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        .step-btn {
+            background: #1f1f1f; border: 1px solid #000; border-top: 1px solid #3c3c3c; border-left: 1px solid #2a2a2a;
+            color: var(--text-main); width: 22px; height: 14px; display: flex; justify-content: center; align-items: center; 
+            cursor: pointer; box-shadow: 1px 1px 3px rgba(0,0,0,0.8); border-radius: 2px;
+        }
+        .step-btn svg { width: 8px; height: 8px; fill: currentColor; pointer-events: none; }
+        .step-btn:hover { color: var(--accent-color); background: #242424; }
+        .step-btn:active { border-top: 1px solid #000; border-left: 1px solid #000; background: #151515; color: var(--accent-color); box-shadow: inset 1px 1px 2px rgba(0,0,0,0.8); }
+
         .transport-recess {
-            display: flex; gap: 8px;
-            background: #080808; 
-            padding: 8px;
-            border-top: 2px solid #000;
-            border-left: 2px solid #000;
-            border-bottom: 1px solid #2a2a2a;
-            border-right: 1px solid #2a2a2a;
-            box-shadow: inset 4px 4px 15px rgba(0,0,0,0.9), inset -1px -1px 3px rgba(0,0,0,0.5);
-            border-radius: 4px;
+            display: flex; gap: 8px; background: #080808; padding: 8px;
+            border-top: 2px solid #000; border-left: 2px solid #000; border-bottom: 1px solid #2a2a2a; border-right: 1px solid #2a2a2a;
+            box-shadow: inset 4px 4px 15px rgba(0,0,0,0.9), inset -1px -1px 3px rgba(0,0,0,0.5); border-radius: 4px;
         }
 
         .rubber-btn {
-            font-family: 'DATA', monospace; 
-            background: #1f1f1f; 
-            color: var(--text-main);
-            width: 44px; height: 44px;
-            border: 1px solid #000; 
-            border-top: 1px solid #3c3c3c;
-            border-left: 1px solid #2a2a2a;
-            border-radius: 4px; 
-            font-size: 18px; 
-            cursor: pointer;
-            display: flex; justify-content: center; align-items: center; 
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.7), inset 0 0 4px rgba(0,0,0,0.4);
-            transition: all 0.05s;
+            font-family: 'DATA', monospace; background: #1f1f1f; color: var(--text-main); width: 44px; height: 44px;
+            border: 1px solid #000; border-top: 1px solid #3c3c3c; border-left: 1px solid #2a2a2a; border-radius: 4px; font-size: 18px; 
+            cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 2px 2px 5px rgba(0,0,0,0.7), inset 0 0 4px rgba(0,0,0,0.4); transition: all 0.05s;
         }
+        .rubber-btn svg { fill: currentColor; width: 16px; height: 16px; pointer-events: none; }
+        .rubber-btn:hover:not(:disabled) { color: var(--accent-color); text-shadow: 0 0 8px var(--accent-dim); background: #242424; }
+        .rubber-btn:active:not(:disabled) { border-top: 1px solid #000; border-left: 1px solid #000; box-shadow: inset 3px 3px 8px rgba(0,0,0,0.9); color: var(--accent-color); background-color: #151515; transform: translateY(2px); }
+        .rubber-btn:disabled { opacity: 0.2; cursor: not-allowed; border-top: 1px solid #111; box-shadow: none; }
+        
+        .rubber-btn.recording-active { color: #ff0055 !important; text-shadow: 0 0 8px rgba(255, 0, 85, 0.4) !important; animation: pulse-record 1s infinite alternate; }
+        @keyframes pulse-record { from { box-shadow: inset 0 0 4px rgba(255,0,85,0.2); background-color: #1a050a; } to { box-shadow: inset 0 0 15px rgba(255,0,85,0.6); background-color: #240a12; } }
 
-        .rubber-btn svg {
-            fill: currentColor;
-            width: 16px;
-            height: 16px;
-            pointer-events: none;
-        }
-        
-        .rubber-btn:hover:not(:disabled) { 
-            color: var(--accent-color); 
-            text-shadow: 0 0 8px var(--accent-dim);
-            background: #242424;
-        }
-        .rubber-btn:active:not(:disabled) { 
-            border-top: 1px solid #000; 
-            border-left: 1px solid #000;
-            box-shadow: inset 3px 3px 8px rgba(0,0,0,0.9);
-            color: var(--accent-color); 
-            background-color: #151515;
-            transform: translateY(2px);
-        }
-        .rubber-btn:disabled { 
-            opacity: 0.2; cursor: not-allowed; border-top: 1px solid #111; box-shadow: none; 
-        }
-        
         button.text-btn {
-            font-family: 'DATA', monospace; background-color: #1f1f1f; color: var(--text-main);
-            border: 1px solid #000; border-top: 1px solid #333; border-left: 1px solid #333;
-            padding: 8px 12px; font-size: 13px; cursor: pointer; text-transform: uppercase;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            font-family: 'DATA', monospace; background-color: #1f1f1f; color: var(--text-main); border: 1px solid #000; border-top: 1px solid #333; border-left: 1px solid #333;
+            padding: 8px 12px; font-size: 13px; cursor: pointer; text-transform: uppercase; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
         }
         button.text-btn:hover:not(:disabled) { background-color: #262626; color: var(--accent-color); }
         button.text-btn:active:not(:disabled) { box-shadow: inset 2px 2px 5px rgba(0,0,0,0.8); color: var(--accent-color); background-color: #111; }
 
-        .chop-controls {
-            display: none; align-items: center; gap: 15px; background: #080808; 
-            border: 1px solid #000; padding: 0 15px; font-size: 12px; height: 44px;
-            box-shadow: inset 0 0 5px #000;
-        }
+        .chop-controls { display: none; align-items: center; gap: 15px; background: #080808; border: 1px solid #000; padding: 0 15px; font-size: 12px; height: 44px; box-shadow: inset 0 0 5px #000; }
         .chop-controls.active { display: flex; }
-        
-        input[type="checkbox"] { 
-            accent-color: var(--accent-color); transform: scale(1.2); cursor: pointer; 
-            background: #000; border: 1px solid var(--accent-color);
-        }
+        input[type="checkbox"] { accent-color: var(--accent-color); transform: scale(1.2); cursor: pointer; background: #000; border: 1px solid var(--accent-color); }
 
-        .info-panel { 
-            background: #080808; padding: 10px 15px; 
-            border: 2px solid #000; box-shadow: inset 0 0 8px #000;
-            margin-bottom: 12px; font-size: 12px; 
-            display: flex; justify-content: space-between; color: #777;
-        }
+        .info-panel { background: #080808; padding: 10px 15px; border: 2px solid #000; box-shadow: inset 0 0 8px #000; margin-bottom: 12px; font-size: 12px; display: flex; justify-content: space-between; color: #777; }
         .info-panel span { color: var(--accent-color); text-shadow: 0 0 3px var(--accent-dim); }
 
-        #waveformCanvas { 
-            width: 100%; height: 380px; 
-            background-color: #050505; 
+        /* Unified Waveform Wrapper */
+        .waveform-wrapper {
+            width: 100%; position: relative;
             border: 2px solid #000; border-bottom: 1px solid #222; border-right: 1px solid #222;
-            cursor: crosshair; touch-action: none; 
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9); background-color: #050505;
+            display: flex; flex-direction: column;
         }
-        
+
+        #waveformCanvas { width: 100%; height: 364px; cursor: crosshair; touch-action: none; display: block; }
         #loadSampleInput { display: none; }
 
-        /* Amplify Modal */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;
+        /* Horizontal Scrollbar Track & Thumb */
+        .scroll-track {
+            width: 100%; height: 16px; background: #080808; border-top: 2px solid #000; 
+            position: relative; box-sizing: border-box; box-shadow: inset 0 0 8px rgba(0,0,0,1);
         }
-        .modal-box {
-            background: var(--panel-bg); border: 2px solid var(--border-inset);
-            border-top: 2px solid var(--border-outset); border-left: 2px solid var(--border-outset);
-            padding: 20px; width: 300px; display: flex; flex-direction: column; gap: 15px;
-            box-shadow: 10px 10px 30px #000; font-size: 12px;
+        .scroll-thumb {
+            position: absolute; top: 1px; bottom: 1px; background: #222;
+            border: 1px solid #000; border-top: 1px solid #444; border-left: 1px solid #444;
+            border-radius: 2px; cursor: pointer; box-sizing: border-box;
+            background-image: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.3) 2px, rgba(0,0,0,0.3) 4px);
         }
+        .scroll-thumb:hover { background: #2a2a2a; }
+        .scroll-thumb:active { background: #1a1a1a; border-top: 1px solid #000; border-left: 1px solid #000; box-shadow: inset 2px 2px 4px #000; }
+
+        /* Vertical Zoom Controls */
+        .vertical-zoom-controls {
+            position: absolute; bottom: 50px; left: 10px; display: flex; flex-direction: column; gap: 4px;
+            background: rgba(8, 8, 8, 0.85); padding: 5px; border: 1px solid #222; border-radius: 4px;
+            z-index: 50; box-shadow: 2px 2px 5px rgba(0,0,0,0.8);
+        }
+        .vertical-zoom-controls .step-btn { width: 24px; height: 24px; font-size: 16px; font-weight: bold; }
+
+        /* Real-Time Trim Wheel */
+        .region-vol-wheel {
+            position: absolute; width: 24px; height: 24px; background: #181818;
+            border: 1px solid #000; border-radius: 50%; cursor: ns-resize;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.8), inset 0 0 3px rgba(0,0,0,0.5);
+            z-index: 100; display: none; justify-content: center; align-items: flex-start;
+            padding-top: 2px; box-sizing: border-box; transform-origin: center;
+        }
+        .region-vol-wheel::before {
+            content: ''; position: absolute; inset: 1px; border-radius: 50%;
+            border: 1px solid var(--accent-color); opacity: 0.5;
+        }
+        .region-vol-wheel::after {
+            content: ''; width: 2px; height: 6px; background: var(--accent-color); border-radius: 1px; z-index: 2;
+        }
+        .region-vol-wheel:hover { background: #222; }
+        
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-box { background: var(--panel-bg); border: 2px solid var(--border-inset); border-top: 2px solid var(--border-outset); border-left: 2px solid var(--border-outset); padding: 20px; width: 320px; display: flex; flex-direction: column; gap: 15px; box-shadow: 10px 10px 30px #000; font-size: 12px; }
         .modal-title { color: var(--accent-color); font-size: 16px; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 5px; }
         .slider-container { display: flex; flex-direction: column; gap: 10px; align-items: center; }
         input[type=range] { width: 100%; accent-color: var(--accent-color); cursor: pointer; }
         .modal-buttons { display: flex; gap: 10px; justify-content: space-between; margin-top: 10px; }
+        select { background: #111; color: var(--accent-color); border: 1px solid #333; padding: 8px; font-family: 'DATA', monospace; width: 100%; outline: none;}
     </style>
 </head>
 <body>
@@ -200,23 +194,25 @@
         </div>
         <div class="menu-item" onclick="toggleMenu(event, 'editMenu')">Edit
             <div id="editMenu" class="dropdown">
-                <div class="dropdown-item" id="menuUndo" onclick="closeMenus(); undo()" disabled>Undo</div>
-                <div class="dropdown-item" id="menuCut" onclick="closeMenus(); cutSelection()" disabled>Cut</div>
-                <div class="dropdown-item" id="menuCopy" onclick="closeMenus(); copySelection()" disabled>Copy</div>
-                <div class="dropdown-item" id="menuPaste" onclick="closeMenus(); pasteSelection()" disabled>Paste</div>
+                <div class="dropdown-item" id="menuUndo" onclick="closeMenus(); undo()" disabled>Undo (Ctrl+Z)</div>
+                <div class="dropdown-item" id="menuTrim" onclick="closeMenus(); trimSelection()" disabled>Trim Selection</div>
+                <div class="dropdown-item" id="menuCut" onclick="closeMenus(); cutSelection()" disabled>Cut (Ctrl+X)</div>
+                <div class="dropdown-item" id="menuCopy" onclick="closeMenus(); copySelection()" disabled>Copy (Ctrl+C)</div>
+                <div class="dropdown-item" id="menuPaste" onclick="closeMenus(); pasteSelection()" disabled>Paste / Insert (Ctrl+V)</div>
+                <div class="dropdown-item" id="menuMixPaste" onclick="closeMenus(); mixPasteSelection()" disabled>Mix Paste</div>
                 <div class="dropdown-item" id="menuSilence" onclick="closeMenus(); silenceSelection()" disabled>Silence Region</div>
                 <div class="dropdown-item" id="menuAmplify" onclick="closeMenus(); openAmplifyModal()" disabled>Amplify Region...</div>
+                <div class="dropdown-item" id="menuFX" onclick="closeMenus(); openFXModal()" disabled>FX Processor...</div>
                 <div class="dropdown-item" id="menuFadeIn" onclick="closeMenus(); fadeInSelection()" disabled>Fade In Region</div>
                 <div class="dropdown-item" id="menuFadeOut" onclick="closeMenus(); fadeOutSelection()" disabled>Fade Out Region</div>
             </div>
         </div>
         <div class="menu-item" onclick="toggleMenu(event, 'selectMenu')">Select
             <div id="selectMenu" class="dropdown">
-                <div class="dropdown-item" id="menuSelectionMode" onclick="event.stopPropagation(); toggleSelectionMode()">Drag Mode: Playhead</div>
+                <div class="dropdown-item" id="menuSelectionMode" onclick="toggleSelectionMode(event)">Drag Mode: Playhead</div>
                 <div class="dropdown-item" id="menuZeroCross" onclick="closeMenus(); toggleZeroCross()">Zero Cross: ON</div>
-                <div class="dropdown-item" style="display:flex; justify-content:space-between; align-items:center;" onclick="event.stopPropagation();">
-                    Theme Color 
-                    <input type="color" id="themeColorPicker" value="#00e5ff" style="background:none; border:none; width:26px; height:26px; cursor:pointer; padding:0;">
+                <div class="dropdown-item" style="display:flex; justify-content:space-between; align-items:center;" onclick="keepMenuOpen(event)">
+                    Theme Color <input type="color" id="themeColorPicker" value="#00e5ff" style="background:none; border:none; width:26px; height:26px; cursor:pointer; padding:0;">
                 </div>
             </div>
         </div>
@@ -224,6 +220,8 @@
             <div id="viewMenu" class="dropdown">
                 <div class="dropdown-item" onclick="closeMenus(); zoomIn()">Zoom In (+)</div>
                 <div class="dropdown-item" onclick="closeMenus(); zoomOut()">Zoom Out (-)</div>
+                <div class="dropdown-item" id="menuPeakSep" onclick="closeMenus(); togglePeakSeparators()">Peak Separators: OFF</div>
+                <div class="dropdown-item" id="menuTimeFormat" onclick="closeMenus(); toggleTimeFormat()">Time Format: SEC</div>
             </div>
         </div>
     </div>
@@ -231,17 +229,26 @@
     <div class="toolbar">
         <div class="time-display" id="timeDisplay">00:00:000</div>
         
+        <div class="bpm-control" id="bpmControl">
+            <input type="number" id="bpmInput" value="120" min="1" max="999"> BPM
+            <div style="display:flex; flex-direction:column; gap:3px; margin-left:6px;">
+                <button class="step-btn" id="btnBpmUp"><svg viewBox="0 0 24 24"><polygon points="12,6 20,18 4,18"></polygon></svg></button>
+                <button class="step-btn" id="btnBpmDown"><svg viewBox="0 0 24 24"><polygon points="12,18 4,6 20,6"></polygon></svg></button>
+            </div>
+        </div>
+
         <div class="transport-recess">
-            <button id="btnPlay" class="rubber-btn" title="Play" disabled>
+            <button id="btnRecord" class="rubber-btn" title="Record Audio [R]">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"></circle></svg>
+            </button>
+            <button id="btnPlay" class="rubber-btn" title="Play [Space]" disabled>
                 <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"></polygon></svg>
             </button>
-            <button id="btnStop" class="rubber-btn" title="Stop" disabled>
+            <button id="btnStop" class="rubber-btn" title="Stop [Space]" disabled>
                 <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16"></rect></svg>
             </button>
             <button id="btnLoop" class="rubber-btn" title="Loop" disabled>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"/>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"/></svg>
             </button>
             <button id="btnChopMode" class="rubber-btn" title="Chop Mode" disabled>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>
@@ -249,39 +256,49 @@
         </div>
         
         <div class="chop-controls" id="chopControlsPanel">
-            <label style="display:flex; align-items:center; cursor:pointer; color: var(--text-main);">
-                <input type="checkbox" id="triggerModeCheck" style="margin-right:8px;"> TRIGGER
-            </label>
-            <label style="display:flex; align-items:center; cursor:pointer; color: var(--text-main);">
-                <input type="checkbox" id="deleteChopCheck" style="margin-right:8px;"> DEL CHOP
-            </label>
+            <label style="display:flex; align-items:center; cursor:pointer; color: var(--text-main);"><input type="checkbox" id="triggerModeCheck" style="margin-right:8px;"> TRIGGER</label>
+            <label style="display:flex; align-items:center; cursor:pointer; color: var(--text-main);"><input type="checkbox" id="deleteChopCheck" style="margin-right:8px;"> DEL CHOP</label>
         </div>
-
         <input type="file" id="loadSampleInput" accept="audio/*">
     </div>
 
     <div class="info-panel">
         <div>STATUS: <span id="status">AWAITING AUDIO</span></div>
-        <div>WINDOW: <span id="loopRangeDisplay">0.000S &gt;&gt; 0.000S</span></div>
+        <div>WINDOW: <span id="loopRangeDisplay">0.000S &gt;&gt; 0.000S</span> | SEL BPM: <span id="selBpmDisp">--</span></div>
         <div>ZOOM: <span id="zoomMag">1X</span> | AMP: <span id="ampMag">1.0X</span></div>
     </div>
     
-    <canvas id="waveformCanvas"></canvas>
+    <!-- Unified Waveform & Scrollbar Container -->
+    <div class="waveform-wrapper">
+        <canvas id="waveformCanvas"></canvas>
+        <div id="scrollTrack" class="scroll-track">
+            <div id="scrollThumb" class="scroll-thumb"></div>
+        </div>
+        
+        <div class="vertical-zoom-controls" title="Vertical Zoom">
+            <button class="step-btn" onclick="adjustVerticalZoom(0.2)">+</button>
+            <button class="step-btn" onclick="adjustVerticalZoom(-0.2)">-</button>
+        </div>
+
+        <div id="regionVolWheel" class="region-vol-wheel" title="Drag Up/Down to Adjust Selection Gain"></div>
+    </div>
+
 </div>
 
-<!-- Amplify Modal -->
+<!-- Modals -->
 <div id="amplifyModal" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-title">AMPLIFY REGION</div>
-        <div class="slider-container">
-            <input type="range" id="ampSlider" min="0" max="200" value="100">
-            <div style="color: var(--accent-color); font-size: 16px;" id="ampValueVal">1.00x</div>
-        </div>
-        <div class="modal-buttons">
-            <button class="text-btn" id="btnPreviewAmp" style="flex:1;">PREVIEW</button>
-            <button class="text-btn" id="btnApplyAmp" style="flex:1;">APPLY</button>
-            <button class="text-btn" onclick="closeAmplifyModal()">CANCEL</button>
-        </div>
+        <div class="slider-container"><input type="range" id="ampSlider" min="0" max="200" value="100"><div style="color: var(--accent-color); font-size: 16px;" id="ampValueVal">1.00x</div></div>
+        <div class="modal-buttons"><button class="text-btn" id="btnPreviewAmp" style="flex:1;">PREVIEW</button><button class="text-btn" id="btnApplyAmp" style="flex:1;">APPLY</button><button class="text-btn" onclick="closeAmplifyModal()">CANCEL</button></div>
+    </div>
+</div>
+<div id="fxModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-title">FX PROCESSOR</div>
+        <select id="fxTypeSelect"><option value="echo">Echo Chamber (Delay)</option><option value="reverb">Digital Reverb</option><option value="tube">Tube Compressor / Limiter</option></select>
+        <div class="slider-container"><label style="color:var(--text-main); margin-top:5px;">INTENSITY / WET MIX</label><input type="range" id="fxSlider" min="0" max="100" value="50"><div style="color: var(--accent-color); font-size: 16px;" id="fxValueVal">50%</div></div>
+        <div class="modal-buttons"><button class="text-btn" id="btnPreviewFX" style="flex:1;">PREVIEW</button><button class="text-btn" id="btnApplyFX" style="flex:1;">APPLY</button><button class="text-btn" onclick="closeFXModal()">CANCEL</button></div>
     </div>
 </div>
 
@@ -289,10 +306,32 @@
     let audioCtx, audioBuf, sourceNode = null, masterGain = null;
     let loopStart = 0, loopEnd = 0, currentPlayTime = 0;
     let isPlaying = false, isDragging = false, dragTarget = null;
-    let zoomH = 1, scrollPos = 0, ampZoom = 1;
+    let zoomH = 1, scrollPos = 0, ampZoom = 1.0;
     let playbackStartTime = 0, aniFrame = null;
     let isLoopingActive = true;
     let wasPlayingBeforeDrag = false;
+    
+    // Recording state
+    let isRecording = false;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let mediaStream = null;
+    let recordingStartTime = 0;
+    let recordStartOffset = 0; 
+    let analyser = null;
+    let liveWaveformData = [];
+    let recAnimFrame = null;
+    
+    // Scrollbar state
+    let isDraggingThumb = false;
+    let dragThumbStartX = 0;
+    let dragThumbStartScrollPos = 0;
+
+    // Trim Wheel state
+    let isDraggingVolWheel = false;
+    let volWheelStartY = 0;
+    let currentVolGain = 1.0;
+    let regionBackup = [];
     
     let isZeroCross = true;
     let isChopMode = false;
@@ -301,12 +340,16 @@
     let sliceMarkers = []; 
     let draggedSliceIndex = null;
     let activeSliceStart = 0;
-
     let isQuickSelectMode = false;
     let selectOriginTime = 0;
 
-    // Amplify State
+    let isBpmMode = false;
+    let currentBpm = 120;
+    let showPeakSeparators = false;
+
     let isPreviewingAmp = false;
+    let isPreviewingFX = false;
+    let proceduralIR = null;
 
     let currentThemeColor = "#00e5ff"; 
     let clipboardData = null;
@@ -315,13 +358,23 @@
 
     const canvas = document.getElementById('waveformCanvas');
     const ctx = canvas.getContext('2d');
+    const scrollTrack = document.getElementById('scrollTrack');
+    const scrollThumb = document.getElementById('scrollThumb');
     const status = document.getElementById('status');
     const loopDisp = document.getElementById('loopRangeDisplay');
+    const selBpmDisp = document.getElementById('selBpmDisp');
     const zoomMagDisp = document.getElementById('zoomMag');
     const ampMagDisp = document.getElementById('ampMag');
     const timeDisplay = document.getElementById('timeDisplay');
     const input = document.getElementById('loadSampleInput');
+    const regionVolWheel = document.getElementById('regionVolWheel');
     
+    const bpmControl = document.getElementById('bpmControl');
+    const bpmInput = document.getElementById('bpmInput');
+    const menuTimeFormat = document.getElementById('menuTimeFormat');
+    const menuPeakSep = document.getElementById('menuPeakSep');
+
+    const btnRecord = document.getElementById('btnRecord');
     const btnPlay = document.getElementById('btnPlay');
     const btnStop = document.getElementById('btnStop');
     const btnLoop = document.getElementById('btnLoop');
@@ -332,11 +385,14 @@
     const themeColorPicker = document.getElementById('themeColorPicker');
 
     const menuUndo = document.getElementById('menuUndo');
+    const menuTrim = document.getElementById('menuTrim');
     const menuCut = document.getElementById('menuCut');
     const menuCopy = document.getElementById('menuCopy');
     const menuPaste = document.getElementById('menuPaste');
+    const menuMixPaste = document.getElementById('menuMixPaste');
     const menuSilence = document.getElementById('menuSilence');
     const menuAmplify = document.getElementById('menuAmplify');
+    const menuFX = document.getElementById('menuFX');
     const menuFadeIn = document.getElementById('menuFadeIn');
     const menuFadeOut = document.getElementById('menuFadeOut');
     const menuExport = document.getElementById('menuExport');
@@ -344,852 +400,934 @@
     const menuZeroCross = document.getElementById('menuZeroCross');
     const menuSelectionMode = document.getElementById('menuSelectionMode');
 
-    // Amplify Elements
     const amplifyModal = document.getElementById('amplifyModal');
     const ampSlider = document.getElementById('ampSlider');
     const ampValueVal = document.getElementById('ampValueVal');
     const btnPreviewAmp = document.getElementById('btnPreviewAmp');
     const btnApplyAmp = document.getElementById('btnApplyAmp');
 
+    const fxModal = document.getElementById('fxModal');
+    const fxTypeSelect = document.getElementById('fxTypeSelect');
+    const fxSlider = document.getElementById('fxSlider');
+    const fxValueVal = document.getElementById('fxValueVal');
+    const btnPreviewFX = document.getElementById('btnPreviewFX');
+    const btnApplyFX = document.getElementById('btnApplyFX');
+
     function hexToRgba(hex, alpha) {
-        let r = parseInt(hex.slice(1, 3), 16),
-            g = parseInt(hex.slice(3, 5), 16),
-            b = parseInt(hex.slice(5, 7), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16); return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
     themeColorPicker.addEventListener('input', (e) => {
-        currentThemeColor = e.target.value;
-        document.documentElement.style.setProperty('--accent-color', currentThemeColor);
-        document.documentElement.style.setProperty('--accent-dim', hexToRgba(currentThemeColor, 0.15));
-        
-        if (isPlaying) btnPlay.style.color = currentThemeColor;
-        if (isLoopingActive) btnLoop.style.color = currentThemeColor;
-        if (isChopMode) btnChopMode.style.color = currentThemeColor;
-        if (isQuickSelectMode) menuSelectionMode.style.color = currentThemeColor;
-        if (isPreviewingAmp) btnPreviewAmp.style.color = currentThemeColor;
-        
+        currentThemeColor = e.target.value; document.documentElement.style.setProperty('--accent-color', currentThemeColor); document.documentElement.style.setProperty('--accent-dim', hexToRgba(currentThemeColor, 0.15));
+        if (isPlaying) btnPlay.style.color = currentThemeColor; if (isLoopingActive) btnLoop.style.color = currentThemeColor; if (isChopMode) btnChopMode.style.color = currentThemeColor;
+        if (isQuickSelectMode) menuSelectionMode.style.color = currentThemeColor; if (isPreviewingAmp) btnPreviewAmp.style.color = currentThemeColor; if (isPreviewingFX) btnPreviewFX.style.color = currentThemeColor;
+        if (isBpmMode) menuTimeFormat.style.color = currentThemeColor;
+        if (showPeakSeparators) menuPeakSep.style.color = currentThemeColor;
         draw(currentPlayTime);
     });
 
-    function closeMenus() {
-        document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+    function changeBpm(delta) {
+        currentBpm = Math.max(1, Math.min(999, currentBpm + delta));
+        bpmInput.value = currentBpm;
+        updateTimeDisplay(currentPlayTime);
+        draw(currentPlayTime);
     }
 
-    function toggleMenu(e, menuId) {
-        if (e.target.classList.contains('dropdown-item')) return;
-        e.stopPropagation();
-        document.querySelectorAll('.dropdown').forEach(d => {
-            if (d.id !== menuId) d.parentElement.classList.remove('active');
-        });
-        e.currentTarget.classList.toggle('active');
+    bpmInput.addEventListener('input', (e) => {
+        currentBpm = Math.max(1, parseFloat(e.target.value) || 120);
+        updateTimeDisplay(currentPlayTime);
+        draw(currentPlayTime);
+    });
+
+    function setupBpmStepper(btn, delta) {
+        let interval, timeout;
+        const start = (e) => {
+            e.preventDefault(); changeBpm(delta);
+            timeout = setTimeout(() => { interval = setInterval(() => changeBpm(delta), 50); }, 300);
+        };
+        const stop = (e) => { e.preventDefault(); clearTimeout(timeout); clearInterval(interval); };
+        btn.addEventListener('mousedown', start); btn.addEventListener('touchstart', start);
+        btn.addEventListener('mouseup', stop); btn.addEventListener('mouseleave', stop); btn.addEventListener('touchend', stop);
     }
     
+    setupBpmStepper(document.getElementById('btnBpmUp'), 1);
+    setupBpmStepper(document.getElementById('btnBpmDown'), -1);
+
+    function toggleTimeFormat() {
+        isBpmMode = !isBpmMode;
+        menuTimeFormat.innerText = `Time Format: ${isBpmMode ? 'BPM' : 'SEC'}`;
+        menuTimeFormat.style.color = isBpmMode ? 'var(--accent-color)' : 'var(--text-main)';
+        bpmControl.classList.toggle('active', isBpmMode);
+        updateTimeDisplay(currentPlayTime); draw(currentPlayTime);
+    }
+
+    function togglePeakSeparators() {
+        showPeakSeparators = !showPeakSeparators;
+        menuPeakSep.innerText = `Peak Separators: ${showPeakSeparators ? 'ON' : 'OFF'}`;
+        menuPeakSep.style.color = showPeakSeparators ? 'var(--accent-color)' : 'var(--text-main)';
+        draw(currentPlayTime);
+    }
+
+    function adjustVerticalZoom(delta) {
+        ampZoom = Math.max(0.1, Math.min(10.0, ampZoom + delta));
+        updateUI(); draw(currentPlayTime);
+    }
+
+    function closeMenus() { document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active')); }
+    function keepMenuOpen(e) { if (e) e.stopPropagation(); }
+    function toggleMenu(e, menuId) {
+        if (e && e.target.classList.contains('dropdown-item')) return;
+        if (e) e.stopPropagation();
+        document.querySelectorAll('.dropdown').forEach(d => { if (d.id !== menuId) d.parentElement.classList.remove('active'); });
+        if (e) e.currentTarget.classList.toggle('active');
+    }
     window.onclick = closeMenus;
 
-    function toggleZeroCross() {
-        isZeroCross = !isZeroCross;
-        menuZeroCross.innerText = `Zero Cross: ${isZeroCross ? 'ON' : 'OFF'}`;
-        menuZeroCross.style.color = isZeroCross ? 'var(--accent-color)' : 'var(--text-main)';
-    }
-
-    function toggleSelectionMode() {
-        isQuickSelectMode = !isQuickSelectMode;
-        menuSelectionMode.innerText = `Drag Mode: ${isQuickSelectMode ? 'Region' : 'Playhead'}`;
-        menuSelectionMode.style.color = isQuickSelectMode ? 'var(--accent-color)' : 'var(--text-main)';
-    }
+    function toggleZeroCross() { isZeroCross = !isZeroCross; menuZeroCross.innerText = `Zero Cross: ${isZeroCross ? 'ON' : 'OFF'}`; menuZeroCross.style.color = isZeroCross ? 'var(--accent-color)' : 'var(--text-main)'; }
+    function toggleSelectionMode(e) { if (e) e.stopPropagation(); isQuickSelectMode = !isQuickSelectMode; menuSelectionMode.innerText = `Drag Mode: ${isQuickSelectMode ? 'Region' : 'Playhead'}`; menuSelectionMode.style.color = isQuickSelectMode ? 'var(--accent-color)' : 'var(--text-main)'; }
 
     function getAudioContext() {
         if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            masterGain = audioCtx.createGain();
-            masterGain.connect(audioCtx.destination);
+            const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioCtxClass(); masterGain = audioCtx.createGain(); masterGain.connect(audioCtx.destination);
         }
         return audioCtx;
     }
 
+    window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT') return;
+
+        if (e.code === 'Space') {
+            e.preventDefault(); 
+            if (isRecording) stopRecording();
+            else if (isPlaying) stopAudio();
+            else if (audioBuf) startAudio(currentPlayTime);
+        }
+        if (e.code === 'KeyR') { 
+            e.preventDefault(); 
+            if (isRecording) stopRecording(); else startRecording(); 
+        }
+
+        if (e.ctrlKey || e.metaKey) {
+            if (e.code === 'KeyZ') { e.preventDefault(); undo(); }
+            if (e.code === 'KeyX') { e.preventDefault(); cutSelection(); }
+            if (e.code === 'KeyC') { e.preventDefault(); copySelection(); }
+            if (e.code === 'KeyV') { e.preventDefault(); pasteSelection(); }
+        }
+    });
+
+    scrollThumb.onmousedown = (e) => {
+        if (!audioBuf) return;
+        e.stopPropagation();
+        isDraggingThumb = true;
+        dragThumbStartX = e.clientX;
+        dragThumbStartScrollPos = scrollPos;
+    };
+
+    scrollTrack.onmousedown = (e) => {
+        if (!audioBuf || e.target === scrollThumb) return;
+        const rect = scrollTrack.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const trackWidth = scrollTrack.clientWidth;
+        const { visibleSamples, totalLen } = getVisibleData();
+        const thumbWidth = Math.max(20, (visibleSamples / totalLen) * trackWidth);
+        const maxScrollLeft = trackWidth - thumbWidth;
+        
+        let newLeft = clickX - (thumbWidth / 2);
+        newLeft = Math.max(0, Math.min(newLeft, maxScrollLeft));
+        scrollPos = maxScrollLeft === 0 ? 0 : newLeft / maxScrollLeft;
+        
+        draw(currentPlayTime); updateUI();
+    };
+
+    regionVolWheel.onmousedown = (e) => {
+        if (!audioBuf) return;
+        e.stopPropagation();
+        isDraggingVolWheel = true;
+        volWheelStartY = e.clientY;
+        
+        saveState();
+        
+        const sSmp = Math.floor(loopStart * audioBuf.sampleRate);
+        const eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
+        const len = eSmp - sSmp;
+        
+        regionBackup = [];
+        for (let c = 0; c < audioBuf.numberOfChannels; c++) {
+            const data = audioBuf.getChannelData(c);
+            const backup = new Float32Array(len);
+            backup.set(data.subarray(sSmp, eSmp));
+            regionBackup.push(backup);
+        }
+        currentVolGain = 1.0;
+    };
+
+    window.addEventListener('mousemove', (e) => {
+        if (isDraggingThumb) {
+            const deltaX = e.clientX - dragThumbStartX;
+            const trackWidth = scrollTrack.clientWidth;
+            const { visibleSamples, totalLen } = getVisibleData();
+            const thumbWidth = Math.max(20, (visibleSamples / totalLen) * trackWidth);
+            const maxScrollLeft = trackWidth - thumbWidth;
+            
+            if (maxScrollLeft > 0) {
+                let newPos = dragThumbStartScrollPos + (deltaX / maxScrollLeft);
+                scrollPos = Math.max(0, Math.min(1, newPos));
+                draw(currentPlayTime); updateUI();
+            }
+            return;
+        }
+
+        if (isDraggingVolWheel) {
+            const deltaY = volWheelStartY - e.clientY;
+            currentVolGain = Math.max(0, 1.0 + (deltaY * 0.01)); 
+            regionVolWheel.style.transform = `rotate(${deltaY * 1.5}deg)`;
+            
+            const sSmp = Math.floor(loopStart * audioBuf.sampleRate);
+            const eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
+            const len = eSmp - sSmp;
+
+            for (let c = 0; c < audioBuf.numberOfChannels; c++) {
+                const data = audioBuf.getChannelData(c);
+                const backup = regionBackup[c];
+                for (let i = 0; i < len; i++) {
+                    data[sSmp + i] = backup[i] * currentVolGain;
+                }
+            }
+            status.textContent = `TRIMMING SELECTION: ${currentVolGain.toFixed(2)}x`;
+            draw(currentPlayTime);
+            return;
+        }
+
+        if (!isDragging || !audioBuf || isRecording) return; const rect = canvas.getBoundingClientRect(); const rawX = e.clientX - rect.left;
+        let time = Math.max(0, Math.min(audioBuf.duration, xToTime(rawX)));
+        if (isChopMode && dragTarget === 'sliceMarker' && draggedSliceIndex !== null) { time = findZeroCrossing(time); sliceMarkers[draggedSliceIndex] = time; sliceMarkers.sort((a, b) => a - b); draggedSliceIndex = sliceMarkers.indexOf(time);
+        } else if (dragTarget === 'quickSelect') { time = findZeroCrossing(time); loopStart = Math.min(selectOriginTime, time); loopEnd = Math.max(selectOriginTime, time); if (loopEnd - loopStart < 0.001) loopEnd = loopStart + 0.001; 
+        } else {
+            if (dragTarget === 'start') { time = findZeroCrossing(time); loopStart = Math.min(time, loopEnd - 0.001); } 
+            else if (dragTarget === 'end') { time = findZeroCrossing(time); loopEnd = Math.max(time, loopStart + 0.001); } 
+            else if (dragTarget === 'seek') { currentPlayTime = time; updateTimeDisplay(time); }
+        }
+        syncLoopPoints(); draw(currentPlayTime); updateUI();
+    });
+
+    window.addEventListener('mouseup', () => { 
+        if (isDraggingThumb) { isDraggingThumb = false; return; }
+        if (isDraggingVolWheel) {
+            isDraggingVolWheel = false; regionBackup = []; regionVolWheel.style.transform = `rotate(0deg)`;
+            status.textContent = `APPLIED TRIM: ${currentVolGain.toFixed(2)}x`; draw(currentPlayTime); return;
+        }
+        if (isDragging && (dragTarget === 'seek' || dragTarget === 'quickSelect') && wasPlayingBeforeDrag) startAudio(currentPlayTime);
+        wasPlayingBeforeDrag = false; isDragging = false; dragTarget = null; draggedSliceIndex = null; draw(currentPlayTime); 
+    });
+
+    canvas.ondblclick = (e) => {
+        if (!audioBuf || isRecording || !isQuickSelectMode) return;
+        loopStart = 0;
+        loopEnd = audioBuf.duration;
+        currentPlayTime = 0;
+        updateTimeDisplay(currentPlayTime);
+        draw(currentPlayTime);
+        updateUI();
+    };
+
+    btnRecord.onclick = async () => { if (isRecording) stopRecording(); else startRecording(); };
+
+    async function startRecording() {
+        if (isPlaying) stopAudio();
+        status.textContent = 'REQUESTING MIC...';
+        
+        try {
+            getAudioContext();
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } });
+
+            recordStartOffset = currentPlayTime; 
+
+            const micSource = audioCtx.createMediaStreamSource(mediaStream);
+            analyser = audioCtx.createAnalyser(); analyser.fftSize = 1024;
+            micSource.connect(analyser); liveWaveformData = []; recordingStartTime = audioCtx.currentTime;
+
+            recordedChunks = [];
+            const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg', 'audio/mp4'];
+            let selectedType = '';
+            for (let t of types) { if (MediaRecorder.isTypeSupported(t)) { selectedType = t; break; } }
+
+            mediaRecorder = new MediaRecorder(mediaStream, selectedType ? { mimeType: selectedType } : undefined);
+            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+            
+            mediaRecorder.onstop = async () => {
+                status.textContent = 'PROCESSING RECORDING...';
+                cancelAnimationFrame(recAnimFrame);
+                
+                const blob = new Blob(recordedChunks, { type: selectedType || 'audio/webm' });
+                const arrayBuffer = await blob.arrayBuffer();
+
+                try {
+                    const newAudioBuf = await audioCtx.decodeAudioData(arrayBuffer);
+                    
+                    if (audioBuf) {
+                        saveState();
+                        const insertSmp = Math.floor(recordStartOffset * audioBuf.sampleRate);
+                        const newLen = Math.max(audioBuf.length, insertSmp + newAudioBuf.length);
+                        const combinedBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, newLen, audioBuf.sampleRate);
+                        
+                        for (let c = 0; c < audioBuf.numberOfChannels; c++) {
+                            const combinedData = combinedBuf.getChannelData(c);
+                            const oldData = audioBuf.getChannelData(c);
+                            const recData = newAudioBuf.numberOfChannels > c ? newAudioBuf.getChannelData(c) : newAudioBuf.getChannelData(0); 
+                            
+                            combinedData.set(oldData);
+                            
+                            for (let i = 0; i < newAudioBuf.length; i++) {
+                                if (insertSmp + i < combinedData.length) {
+                                    // Destructive Replace
+                                    combinedData[insertSmp + i] = recData[i]; 
+                                }
+                            }
+                        }
+                        
+                        const oldDur = audioBuf.duration; audioBuf = combinedBuf; zoomH = Math.max(1, zoomH * (audioBuf.duration / oldDur));
+                        updateUI(); draw(currentPlayTime); status.textContent = 'RECORDING APPLIED';
+                        
+                    } else { loadAudioBuffer(newAudioBuf, "RECORDING"); }
+                } catch (err) { status.textContent = 'ERR: DECODE FAILED'; console.error(err); }
+                
+                mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; mediaRecorder = null; analyser = null;
+            };
+
+            if (audioBuf) startAudio(recordStartOffset);
+
+            mediaRecorder.start(); isRecording = true; btnRecord.classList.add('recording-active');
+            status.textContent = audioBuf ? 'RECORDING (REPLACE)... [SPACE to Stop]' : 'RECORDING LIVE... [SPACE to Stop]';
+            pollLiveAudio();
+
+        } catch (err) {
+            console.error("Mic error:", err); isRecording = false; btnRecord.classList.remove('recording-active');
+            if (err.name === 'NotAllowedError') status.textContent = 'ERR: MIC DENIED';
+            else if (err.name === 'NotFoundError') status.textContent = 'ERR: NO MIC FOUND';
+            else status.textContent = 'ERR: MIC INIT FAILED (NEEDS LOCALHOST)';
+        }
+    }
+
+    function autoScroll(time) {
+        if (!audioBuf && !isRecording) return;
+        const { startSmp, visibleSamples, totalLen } = getVisibleData();
+        if (visibleSamples === 0) return;
+        
+        const sr = audioCtx ? audioCtx.sampleRate : 44100;
+        const startTime = startSmp / sr;
+        const visDuration = visibleSamples / sr;
+
+        const scrollable = totalLen - visibleSamples;
+        if (scrollable <= 0) { scrollPos = 0; return; }
+
+        if (time > startTime + visDuration * 0.95) {
+            let newStart = startSmp + (visibleSamples * 0.85); 
+            scrollPos = Math.max(0, Math.min(1, newStart / scrollable));
+        } else if (time < startTime) {
+            let newStart = Math.max(0, (time * sr) - (visibleSamples * 0.1));
+            scrollPos = Math.max(0, Math.min(1, newStart / scrollable));
+        }
+    }
+
+    function pollLiveAudio() {
+        if (!isRecording) return;
+        const dataArray = new Float32Array(analyser.frequencyBinCount);
+        analyser.getFloatTimeDomainData(dataArray);
+        let min = 1.0, max = -1.0;
+        for(let i=0; i<dataArray.length; i++) {
+            if(dataArray[i] < min) min = dataArray[i];
+            if(dataArray[i] > max) max = dataArray[i];
+        }
+        liveWaveformData.push({min, max});
+        
+        let liveTime = recordStartOffset + (audioCtx.currentTime - recordingStartTime);
+        if (!audioBuf) { 
+            currentPlayTime = liveTime;
+            autoScroll(currentPlayTime);
+            updateTimeDisplay(currentPlayTime); 
+            draw(currentPlayTime); 
+        }
+        recAnimFrame = requestAnimationFrame(pollLiveAudio);
+    }
+
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+        isRecording = false; btnRecord.classList.remove('recording-active'); status.textContent = 'STOPPED RECORDING';
+    }
+    
+    function loadAudioBuffer(buf, name = "AUDIO") {
+        audioBuf = buf; loopStart = 0; loopEnd = audioBuf.duration; zoomH = 1; scrollPos = 0; currentPlayTime = 0; undoStack = []; sliceMarkers = [];
+        menuUndo.disabled = true; menuTrim.disabled = false; menuCut.disabled = false; menuCopy.disabled = false; menuPaste.disabled = false; menuMixPaste.disabled = false; menuSilence.disabled = false;
+        menuExport.disabled = false; menuExportSlices.disabled = false; menuAmplify.disabled = false; menuFX.disabled = false;
+        menuFadeIn.disabled = false; menuFadeOut.disabled = false; btnPlay.disabled = false; btnStop.disabled = false; 
+        btnLoop.disabled = false; btnChopMode.disabled = false;
+        status.textContent = `READY: ${name.toUpperCase()}`; updateUI(); draw(0); updateTimeDisplay(0);
+    }
+
+    function generateReverbIR(ctx, duration = 3.0, decay = 2.0) {
+        const length = ctx.sampleRate * duration; const impulse = ctx.createBuffer(2, length, ctx.sampleRate);
+        for (let i = 0; i < 2; i++) { const channel = impulse.getChannelData(i); for (let j = 0; j < length; j++) { channel[j] = (Math.random() * 2 - 1) * Math.pow(1 - j / length, decay); } }
+        return impulse;
+    }
+
+    function getTubeCurve(amount) {
+        const k = amount; const n = 44100; const curve = new Float32Array(n); const deg = Math.PI / 180;
+        for (let i = 0; i < n; ++i) { let x = i * 2 / n - 1; curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x)); }
+        return curve;
+    }
+
+    function buildFXChain(ctx, type, intensity) {
+        const input = ctx.createGain(), output = ctx.createGain(); let wetGain = ctx.createGain(), dryGain = ctx.createGain();
+        input.connect(dryGain); dryGain.connect(output);
+        if (type === 'echo') {
+            const delay = ctx.createDelay(); delay.delayTime.value = 0.33; const feedback = ctx.createGain(); feedback.gain.value = 0.4;
+            const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 2000;
+            input.connect(delay); delay.connect(feedback); feedback.connect(filter); filter.connect(delay); delay.connect(wetGain);
+            wetGain.gain.value = intensity; dryGain.gain.value = 1.0;
+        } else if (type === 'reverb') {
+            const convolver = ctx.createConvolver(); if (!proceduralIR) proceduralIR = generateReverbIR(ctx); convolver.buffer = proceduralIR;
+            input.connect(convolver); convolver.connect(wetGain); wetGain.gain.value = intensity; dryGain.gain.value = 1.0 - (intensity * 0.5); 
+        } else if (type === 'tube') {
+            const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -20; comp.knee.value = 20; comp.ratio.value = 4; comp.attack.value = 0.01; comp.release.value = 0.1;
+            const shaper = ctx.createWaveShaper(); shaper.curve = getTubeCurve(intensity * 15); shaper.oversample = '4x';
+            const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 6000 + ((1 - intensity) * 14000);
+            input.connect(comp); comp.connect(shaper); shaper.connect(filter); filter.connect(wetGain); 
+            wetGain.gain.value = intensity; dryGain.gain.value = 1.0 - (intensity * 0.5); 
+        }
+        wetGain.connect(output); return { input, output };
+    }
+
     function findZeroCrossing(time) {
         if (!audioBuf || !isZeroCross) return time;
-        const data = audioBuf.getChannelData(0);
-        const centerIdx = Math.floor(time * audioBuf.sampleRate);
-        const range = 500;
-        let bestIdx = centerIdx, minAmp = 1.0;
-        for (let i = centerIdx - range; i < centerIdx + range; i++) {
-            if (i >= 0 && i < data.length) {
-                const absVal = Math.abs(data[i]);
-                if (absVal < minAmp) { minAmp = absVal; bestIdx = i; }
+        const data = audioBuf.getChannelData(0); 
+        const centerIdx = Math.floor(time * audioBuf.sampleRate); 
+        const range = 1000; // Search outward for ~22ms to find a true sign change
+        
+        for (let offset = 0; offset < range; offset++) {
+            let iR = centerIdx + offset;
+            if (iR > 0 && iR < data.length - 1) {
+                if (data[iR] * data[iR - 1] <= 0) return iR / audioBuf.sampleRate;
+            }
+            let iL = centerIdx - offset;
+            if (iL > 0 && iL < data.length - 1) {
+                if (data[iL] * data[iL - 1] <= 0) return iL / audioBuf.sampleRate;
             }
         }
-        return bestIdx / audioBuf.sampleRate;
+        return time; // fallback
     }
 
     function startAudio(offset = 0) {
-        if (!audioBuf) return;
-        getAudioContext();
-        if (sourceNode) { sourceNode.stop(); sourceNode.disconnect(); }
-        
-        sourceNode = audioCtx.createBufferSource();
-        sourceNode.buffer = audioBuf;
+        if (!audioBuf) return; getAudioContext();
+        if (sourceNode) { try { sourceNode.stop(); } catch(e){} sourceNode.disconnect(); }
+        sourceNode = audioCtx.createBufferSource(); sourceNode.buffer = audioBuf;
 
-        sourceNode.connect(masterGain);
+        if (isPreviewingFX) { let fx = buildFXChain(audioCtx, fxTypeSelect.value, fxSlider.value / 100); sourceNode.connect(fx.input); fx.output.connect(masterGain);
+        } else { sourceNode.connect(masterGain); }
 
         if (isChopMode && isTriggerMode) {
-            let sorted = [0, ...sliceMarkers.sort((a,b)=>a-b), audioBuf.duration];
-            let sStart = 0, sEnd = audioBuf.duration;
-            
-            for (let i = 0; i < sorted.length - 1; i++) {
-                if (offset >= sorted[i] - 0.0001 && offset < sorted[i+1]) {
-                    sStart = sorted[i]; sEnd = sorted[i+1]; break;
-                }
-            }
-
-            activeSliceStart = sStart;
-            sourceNode.loop = false;
-            
-            let durationToPlay = sEnd - sStart;
-            if (durationToPlay <= 0) return;
-
-            sourceNode.start(0, sStart, durationToPlay);
-            playbackStartTime = audioCtx.currentTime - sStart;
-            currentPlayTime = sStart;
-            isPlaying = true;
+            let sorted = [0, ...sliceMarkers.sort((a,b)=>a-b), audioBuf.duration]; let sStart = 0, sEnd = audioBuf.duration;
+            for (let i = 0; i < sorted.length - 1; i++) { if (offset >= sorted[i] - 0.0001 && offset < sorted[i+1]) { sStart = sorted[i]; sEnd = sorted[i+1]; break; } }
+            activeSliceStart = sStart; sourceNode.loop = false; let durationToPlay = sEnd - sStart; if (durationToPlay <= 0) return;
+            sourceNode.start(0, sStart, durationToPlay); playbackStartTime = audioCtx.currentTime - sStart; currentPlayTime = sStart; isPlaying = true;
             sourceNode.onended = () => { if (isPlaying) stopAudio(); };
         } else {
-            sourceNode.loop = isLoopingActive;
-            sourceNode.loopStart = loopStart;
-            sourceNode.loopEnd = loopEnd;
-            
-            let startPoint = offset;
-            if (isLoopingActive && (startPoint < loopStart || startPoint > loopEnd)) {
-                startPoint = loopStart;
-            }
-            
-            sourceNode.start(0, startPoint);
-            playbackStartTime = audioCtx.currentTime - startPoint;
-            currentPlayTime = startPoint;
-            isPlaying = true;
-
-            if (!isLoopingActive) {
-                sourceNode.onended = () => { if (isPlaying) stopAudio(); };
-            }
+            sourceNode.loop = isLoopingActive; sourceNode.loopStart = loopStart; sourceNode.loopEnd = loopEnd;
+            let startPoint = offset; if (isLoopingActive && (startPoint < loopStart || startPoint > loopEnd)) startPoint = loopStart;
+            sourceNode.start(0, startPoint); playbackStartTime = audioCtx.currentTime - startPoint; currentPlayTime = startPoint; isPlaying = true;
+            if (!isLoopingActive) sourceNode.onended = () => { if (isPlaying) stopAudio(); };
         }
-        
-        btnPlay.style.color = "var(--accent-color)";
-        renderLoop();
+        btnPlay.style.color = "var(--accent-color)"; renderLoop();
     }
 
     function stopAudio() {
-        if (sourceNode) { sourceNode.stop(); sourceNode = null; }
-        isPlaying = false;
-        
-        if (isPreviewingAmp) {
-            isPreviewingAmp = false;
-            masterGain.gain.value = 1.0;
-            btnPreviewAmp.style.color = "";
-        }
-
-        btnPlay.style.color = "";
-        cancelAnimationFrame(aniFrame);
-        draw(currentPlayTime);
+        if (sourceNode) { try { sourceNode.stop(); } catch(e){} sourceNode.disconnect(); sourceNode = null; }
+        isPlaying = false; if (isPreviewingAmp) { isPreviewingAmp = false; masterGain.gain.value = 1.0; btnPreviewAmp.style.color = ""; }
+        if (isPreviewingFX) { isPreviewingFX = false; btnPreviewFX.style.color = ""; }
+        btnPlay.style.color = ""; cancelAnimationFrame(aniFrame); draw(currentPlayTime);
     }
 
-    btnPlay.onclick = () => { if (isPlaying) stopAudio(); else startAudio(currentPlayTime); };
-    btnStop.onclick = () => { stopAudio(); currentPlayTime = 0; draw(0); updateTimeDisplay(0); };
+    btnPlay.onclick = async () => { 
+        if (isRecording) return; getAudioContext(); if (audioCtx.state === 'suspended') await audioCtx.resume();
+        if (isPlaying) stopAudio(); else startAudio(currentPlayTime); 
+    };
+
+    btnStop.onclick = () => { if(!isRecording) { stopAudio(); currentPlayTime = 0; draw(0); updateTimeDisplay(0); } };
     
     btnLoop.onclick = () => {
-        isLoopingActive = !isLoopingActive;
-        btnLoop.style.color = isLoopingActive ? "var(--accent-color)" : "";
-        if (sourceNode && !isChopMode) { 
-            if (isPlaying) {
-                let t = currentPlayTime;
-                stopAudio();
-                startAudio(t);
-            }
-        }
+        isLoopingActive = !isLoopingActive; btnLoop.style.color = isLoopingActive ? "var(--accent-color)" : "";
+        if (sourceNode && !isChopMode) { if (isPlaying) { let t = currentPlayTime; stopAudio(); startAudio(t); } }
     };
     btnLoop.style.color = "var(--accent-color)";
 
     btnChopMode.onclick = () => {
-        isChopMode = !isChopMode;
-        btnChopMode.style.color = isChopMode ? "var(--accent-color)" : "";
-        chopControlsPanel.classList.toggle('active', isChopMode);
-        if (isChopMode && sliceMarkers.length === 0 && audioBuf) {
-            sliceMarkers = [loopStart, loopEnd];
-        }
-        draw(currentPlayTime);
+        isChopMode = !isChopMode; btnChopMode.style.color = isChopMode ? "var(--accent-color)" : ""; chopControlsPanel.classList.toggle('active', isChopMode);
+        if (isChopMode && sliceMarkers.length === 0 && audioBuf) sliceMarkers = [loopStart, loopEnd]; draw(currentPlayTime);
     };
 
     triggerModeCheck.onchange = (e) => isTriggerMode = e.target.checked;
     deleteChopCheck.onchange = (e) => isDeleteChopMode = e.target.checked;
 
     function updateTimeDisplay(timeSec) {
-        const mins = Math.floor(timeSec / 60).toString().padStart(2, '0');
-        const secs = Math.floor(timeSec % 60).toString().padStart(2, '0');
-        const millis = Math.floor((timeSec % 1) * 1000).toString().padStart(3, '0');
-        timeDisplay.textContent = `${mins}:${secs}:${millis}`;
-    }
-
-    function syncLoopPoints() {
-        if (sourceNode && isPlaying && !isChopMode) {
-            sourceNode.loopStart = loopStart;
-            sourceNode.loopEnd = loopEnd;
+        if (isBpmMode) {
+            const totalBeats = timeSec * (currentBpm / 60);
+            const bars = Math.floor(totalBeats / 4) + 1;
+            const beats = Math.floor(totalBeats % 4) + 1;
+            const sixteenths = Math.floor((totalBeats % 1) * 4) + 1;
+            timeDisplay.textContent = `${bars.toString().padStart(3, '0')}:${beats}:${sixteenths}`;
+        } else {
+            const mins = Math.floor(timeSec / 60).toString().padStart(2, '0'); 
+            const secs = Math.floor(timeSec % 60).toString().padStart(2, '0');
+            const millis = Math.floor((timeSec % 1) * 1000).toString().padStart(3, '0'); 
+            timeDisplay.textContent = `${mins}:${secs}:${millis}`;
         }
     }
 
+    function syncLoopPoints() { if (sourceNode && isPlaying && !isChopMode) { sourceNode.loopStart = loopStart; sourceNode.loopEnd = loopEnd; } }
+
     function getVisibleData() {
-        if (!audioBuf) return { startSmp: 0, visibleSamples: 0 };
-        const visibleSamples = audioBuf.length / zoomH;
-        const scrollable = audioBuf.length - visibleSamples;
-        const startSmp = scrollPos * scrollable;
-        return { startSmp, visibleSamples };
+        let baseLength = audioBuf ? audioBuf.length : 0;
+        let baseDuration = audioBuf ? audioBuf.duration : 0;
+        const sr = audioCtx ? audioCtx.sampleRate : 44100;
+
+        if (isRecording && audioCtx) {
+            const liveDuration = recordStartOffset + (audioCtx.currentTime - recordingStartTime);
+            if (liveDuration > baseDuration) {
+                baseDuration = liveDuration;
+                baseLength = Math.floor(baseDuration * sr);
+            }
+        }
+
+        if (baseLength === 0) return { startSmp: 0, visibleSamples: 0, totalLen: 0 };
+        const visibleSamples = baseLength / zoomH; 
+        const scrollable = baseLength - visibleSamples; 
+        const startSmp = scrollPos * Math.max(0, scrollable);
+        return { startSmp, visibleSamples, totalLen: baseLength };
     }
 
     function xToTime(x) {
-        const { startSmp, visibleSamples } = getVisibleData();
-        return ((x / canvas.width) * visibleSamples + startSmp) / audioBuf.sampleRate;
+        const { startSmp, visibleSamples } = getVisibleData(); if (visibleSamples === 0) return 0;
+        const sr = audioBuf ? audioBuf.sampleRate : (audioCtx ? audioCtx.sampleRate : 44100); return ((x / canvas.width) * visibleSamples + startSmp) / sr;
     }
 
     function timeToX(t) {
-        const { startSmp, visibleSamples } = getVisibleData();
-        return (((t * audioBuf.sampleRate) - startSmp) / visibleSamples) * canvas.width;
+        const { startSmp, visibleSamples } = getVisibleData(); if (visibleSamples === 0) return 0;
+        const sr = audioBuf ? audioBuf.sampleRate : (audioCtx ? audioCtx.sampleRate : 44100); return (((t * sr) - startSmp) / visibleSamples) * canvas.width;
     }
 
     canvas.onwheel = (e) => {
-        if (!audioBuf) return;
-        e.preventDefault();
-        if (e.shiftKey) {
-            const step = (e.deltaY * 0.0005) / zoomH * 10;
-            scrollPos = Math.max(0, Math.min(1, scrollPos + step));
+        if (!audioBuf || isRecording) return; e.preventDefault();
+        if (e.shiftKey) { const step = (e.deltaY * 0.0005) / zoomH * 10; scrollPos = Math.max(0, Math.min(1, scrollPos + step));
         } else {
-            const focalTime = xToTime(e.offsetX);
-            const zoomFactor = e.deltaY > 0 ? 0.85 : 1.15;
-            zoomH = Math.max(1, Math.min(50000, zoomH * zoomFactor));
-            const newVisible = audioBuf.length / zoomH;
-            const newStartSmp = (focalTime * audioBuf.sampleRate) - (e.offsetX / canvas.width) * newVisible;
-            const maxScroll = audioBuf.length - newVisible;
-            scrollPos = maxScroll <= 0 ? 0 : Math.max(0, Math.min(1, newStartSmp / maxScroll));
+            const focalTime = xToTime(e.offsetX); const zoomFactor = e.deltaY > 0 ? 0.85 : 1.15; zoomH = Math.max(1, Math.min(50000, zoomH * zoomFactor)); 
+            const { totalLen } = getVisibleData(); const newVisible = totalLen / zoomH; const sr = audioBuf ? audioBuf.sampleRate : (audioCtx ? audioCtx.sampleRate : 44100);
+            const newStartSmp = (focalTime * sr) - (e.offsetX / canvas.width) * newVisible; const maxScroll = totalLen - newVisible; scrollPos = maxScroll <= 0 ? 0 : Math.max(0, Math.min(1, newStartSmp / maxScroll));
         }
         draw(currentPlayTime); updateUI();
     };
 
     canvas.onmousedown = (e) => {
-        if (!audioBuf) return;
-        let time = xToTime(e.offsetX);
-        const tol = (15 / canvas.width) * (audioBuf.length / zoomH / audioBuf.sampleRate);
-
+        if (!audioBuf || isRecording) return; let time = xToTime(e.offsetX); const tol = (15 / canvas.width) * (audioBuf.length / zoomH / audioBuf.sampleRate);
         if (isChopMode) {
-            let clickedMarkerIdx = -1;
-            for (let i = 0; i < sliceMarkers.length; i++) {
-                if (Math.abs(time - sliceMarkers[i]) < tol) {
-                    clickedMarkerIdx = i; break;
-                }
-            }
-
-            if (isDeleteChopMode) {
-                if (clickedMarkerIdx !== -1) {
-                    sliceMarkers.splice(clickedMarkerIdx, 1);
-                    draw(currentPlayTime);
-                }
-                return; 
-            }
-
-            if (clickedMarkerIdx !== -1) {
-                draggedSliceIndex = clickedMarkerIdx;
-                dragTarget = 'sliceMarker';
-                isDragging = true;
-            } else if (isTriggerMode) {
-                let sorted = [0, ...sliceMarkers.sort((a,b)=>a-b), audioBuf.duration];
-                let sStart = 0;
-                for (let i = 0; i < sorted.length - 1; i++) {
-                    if (time >= sorted[i] && time < sorted[i+1]) {
-                        sStart = sorted[i]; break;
-                    }
-                }
-                currentPlayTime = Math.max(0, Math.min(audioBuf.duration, sStart));
-                if (isPlaying) stopAudio();
-                startAudio(currentPlayTime);
-                isDragging = false;
-            } else {
-                time = findZeroCrossing(time);
-                sliceMarkers.push(Math.max(0, Math.min(audioBuf.duration, time)));
-                sliceMarkers.sort((a, b) => a - b);
-                
-                draggedSliceIndex = sliceMarkers.indexOf(time);
-                dragTarget = 'sliceMarker';
-                isDragging = true;
-                draw(currentPlayTime);
-            }
+            let clickedMarkerIdx = -1; for (let i = 0; i < sliceMarkers.length; i++) { if (Math.abs(time - sliceMarkers[i]) < tol) { clickedMarkerIdx = i; break; } }
+            if (isDeleteChopMode) { if (clickedMarkerIdx !== -1) { sliceMarkers.splice(clickedMarkerIdx, 1); draw(currentPlayTime); } return; }
+            if (clickedMarkerIdx !== -1) { draggedSliceIndex = clickedMarkerIdx; dragTarget = 'sliceMarker'; isDragging = true; } 
+            else if (isTriggerMode) {
+                let sorted = [0, ...sliceMarkers.sort((a,b)=>a-b), audioBuf.duration]; let sStart = 0;
+                for (let i = 0; i < sorted.length - 1; i++) { if (time >= sorted[i] && time < sorted[i+1]) { sStart = sorted[i]; break; } }
+                currentPlayTime = Math.max(0, Math.min(audioBuf.duration, sStart)); if (isPlaying) stopAudio(); startAudio(currentPlayTime); isDragging = false;
+            } else { time = findZeroCrossing(time); sliceMarkers.push(Math.max(0, Math.min(audioBuf.duration, time))); sliceMarkers.sort((a, b) => a - b); draggedSliceIndex = sliceMarkers.indexOf(time); dragTarget = 'sliceMarker'; isDragging = true; draw(currentPlayTime); }
             return;
         }
-
         time = findZeroCrossing(time);
-
         if (isQuickSelectMode) {
-            selectOriginTime = time;
-            loopStart = time;
-            loopEnd = time + 0.001; 
-            dragTarget = 'quickSelect';
-            isDragging = true;
-            
-            draw(currentPlayTime); 
-            return;
+            selectOriginTime = time; loopStart = time; loopEnd = time + 0.001; dragTarget = 'quickSelect'; isDragging = true; wasPlayingBeforeDrag = isPlaying;
+            if (isPlaying) stopAudio(); currentPlayTime = time; updateTimeDisplay(currentPlayTime); draw(currentPlayTime); return;
         }
-
-        if (Math.abs(time - loopStart) < tol) { dragTarget = 'start'; }
-        else if (Math.abs(time - loopEnd) < tol) { dragTarget = 'end'; }
-        else {
-            currentPlayTime = Math.max(0, Math.min(audioBuf.duration, time));
-            
-            wasPlayingBeforeDrag = isPlaying;
-            if (isPlaying) stopAudio();
-            
-            updateTimeDisplay(currentPlayTime);
-            draw(currentPlayTime); 
-            dragTarget = 'seek';
+        if (Math.abs(time - loopStart) < tol) dragTarget = 'start'; else if (Math.abs(time - loopEnd) < tol) dragTarget = 'end'; else {
+            currentPlayTime = Math.max(0, Math.min(audioBuf.duration, time)); wasPlayingBeforeDrag = isPlaying;
+            if (isPlaying) stopAudio(); updateTimeDisplay(currentPlayTime); draw(currentPlayTime); dragTarget = 'seek';
         }
         isDragging = true;
     };
 
     window.onmousemove = (e) => {
-        if (!isDragging || !audioBuf) return;
-        const rect = canvas.getBoundingClientRect();
-        const rawX = e.clientX - rect.left;
+        if (!isDragging || !audioBuf || isRecording) return; const rect = canvas.getBoundingClientRect(); const rawX = e.clientX - rect.left;
         let time = Math.max(0, Math.min(audioBuf.duration, xToTime(rawX)));
-        
-        if (isChopMode && dragTarget === 'sliceMarker' && draggedSliceIndex !== null) {
-            time = findZeroCrossing(time);
-            sliceMarkers[draggedSliceIndex] = time;
-            sliceMarkers.sort((a, b) => a - b);
-            draggedSliceIndex = sliceMarkers.indexOf(time);
-        } else if (dragTarget === 'quickSelect') {
-            time = findZeroCrossing(time);
-            loopStart = Math.min(selectOriginTime, time);
-            loopEnd = Math.max(selectOriginTime, time);
-            if (loopEnd - loopStart < 0.001) loopEnd = loopStart + 0.001; 
+        if (isChopMode && dragTarget === 'sliceMarker' && draggedSliceIndex !== null) { time = findZeroCrossing(time); sliceMarkers[draggedSliceIndex] = time; sliceMarkers.sort((a, b) => a - b); draggedSliceIndex = sliceMarkers.indexOf(time);
+        } else if (dragTarget === 'quickSelect') { time = findZeroCrossing(time); loopStart = Math.min(selectOriginTime, time); loopEnd = Math.max(selectOriginTime, time); if (loopEnd - loopStart < 0.001) loopEnd = loopStart + 0.001; 
         } else {
-            if (dragTarget === 'start') { 
-                time = findZeroCrossing(time);
-                loopStart = Math.min(time, loopEnd - 0.001); 
-            } else if (dragTarget === 'end') { 
-                time = findZeroCrossing(time);
-                loopEnd = Math.max(time, loopStart + 0.001); 
-            } else if (dragTarget === 'seek') {
-                currentPlayTime = time;
-                updateTimeDisplay(time);
-            }
+            if (dragTarget === 'start') { time = findZeroCrossing(time); loopStart = Math.min(time, loopEnd - 0.001); } 
+            else if (dragTarget === 'end') { time = findZeroCrossing(time); loopEnd = Math.max(time, loopStart + 0.001); } 
+            else if (dragTarget === 'seek') { currentPlayTime = time; updateTimeDisplay(time); }
         }
-        
-        syncLoopPoints(); 
-        draw(currentPlayTime); 
-        updateUI();
+        syncLoopPoints(); draw(currentPlayTime); updateUI();
     };
 
     window.onmouseup = () => { 
-        if (isDragging && (dragTarget === 'seek' || dragTarget === 'quickSelect') && wasPlayingBeforeDrag) {
-            startAudio(currentPlayTime);
+        if (isDraggingThumb) { isDraggingThumb = false; return; }
+        if (isDraggingVolWheel) {
+            isDraggingVolWheel = false; regionBackup = []; regionVolWheel.style.transform = `rotate(0deg)`;
+            status.textContent = `APPLIED TRIM: ${currentVolGain.toFixed(2)}x`; draw(currentPlayTime); return;
         }
-        wasPlayingBeforeDrag = false;
-        isDragging = false; dragTarget = null; draggedSliceIndex = null; draw(currentPlayTime); 
+        if (isDragging && (dragTarget === 'seek' || dragTarget === 'quickSelect') && wasPlayingBeforeDrag) startAudio(currentPlayTime);
+        wasPlayingBeforeDrag = false; isDragging = false; dragTarget = null; draggedSliceIndex = null; draw(currentPlayTime); 
     };
 
-    function cloneAudioBuffer(buf) {
-        if (!buf) return null;
-        const clone = audioCtx.createBuffer(buf.numberOfChannels, buf.length, buf.sampleRate);
-        for(let c=0; c<buf.numberOfChannels; c++) {
-            clone.getChannelData(c).set(buf.getChannelData(c));
-        }
-        return clone;
-    }
-
-    function saveState() {
-        if (!audioBuf) return;
-        undoStack.push({
-            buf: cloneAudioBuffer(audioBuf),
-            zoom: zoomH,
-            scroll: scrollPos,
-            lStart: loopStart,
-            lEnd: loopEnd
-        });
-        if (undoStack.length > MAX_UNDO) undoStack.shift();
-        menuUndo.disabled = false;
-    }
-
+    function cloneAudioBuffer(buf) { if (!buf) return null; const clone = audioCtx.createBuffer(buf.numberOfChannels, buf.length, buf.sampleRate); for(let c=0; c<buf.numberOfChannels; c++) { clone.getChannelData(c).set(buf.getChannelData(c)); } return clone; }
+    function saveState() { if (!audioBuf) return; undoStack.push({ buf: cloneAudioBuffer(audioBuf), zoom: zoomH, scroll: scrollPos, lStart: loopStart, lEnd: loopEnd }); if (undoStack.length > MAX_UNDO) undoStack.shift(); menuUndo.disabled = false; }
     function undo() {
-        if (undoStack.length === 0) return;
-        const wasPlaying = isPlaying;
-        if (wasPlaying) stopAudio();
-        
-        const state = undoStack.pop();
-        audioBuf = state.buf;
-        zoomH = state.zoom;
-        scrollPos = state.scroll;
-        loopStart = state.lStart;
-        loopEnd = state.lEnd;
-        
-        if (undoStack.length === 0) menuUndo.disabled = true;
-        
-        currentPlayTime = Math.min(currentPlayTime, audioBuf.duration);
-        
-        updateUI(); draw(currentPlayTime);
-        status.textContent = "STATE REVERTED";
-        if (wasPlaying) startAudio(currentPlayTime);
+        if (undoStack.length === 0) return; const wasPlaying = isPlaying; if (wasPlaying) stopAudio();
+        const state = undoStack.pop(); audioBuf = state.buf; zoomH = state.zoom; scrollPos = state.scroll; loopStart = state.lStart; loopEnd = state.lEnd;
+        if (undoStack.length === 0) menuUndo.disabled = true; currentPlayTime = Math.min(currentPlayTime, audioBuf.duration);
+        updateUI(); draw(currentPlayTime); status.textContent = "STATE REVERTED"; if (wasPlaying) startAudio(currentPlayTime);
+    }
+    
+    function copySelection() {
+        if (!audioBuf) return; const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp;
+        if (len <= 0) return; getAudioContext(); clipboardData = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate);
+        for(let c=0; c<audioBuf.numberOfChannels; c++) { clipboardData.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); } 
+        menuPaste.disabled = false; menuMixPaste.disabled = false; status.textContent = "COPIED TO CLIPBOARD";
     }
 
-    function copySelection() {
-        if (!audioBuf) return;
-        const sSmp = Math.floor(loopStart * audioBuf.sampleRate);
-        const eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
-        const len = eSmp - sSmp;
-        if (len <= 0) return;
-        
-        getAudioContext();
-        clipboardData = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate);
-        for(let c=0; c<audioBuf.numberOfChannels; c++) {
-            clipboardData.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp));
-        }
-        menuPaste.disabled = false;
-        status.textContent = "COPIED TO CLIPBOARD";
+    function trimSelection() {
+        if (!audioBuf) return; saveState();
+        const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp;
+        if (len <= 0 || len === audioBuf.length) return; 
+        const newBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate);
+        for(let c=0; c<audioBuf.numberOfChannels; c++) { newBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); }
+        const wasPlaying = isPlaying; if (wasPlaying) stopAudio();
+        audioBuf = newBuf; loopStart = 0; loopEnd = audioBuf.duration; currentPlayTime = 0; scrollPos = 0; zoomH = 1;
+        updateUI(); draw(currentPlayTime); status.textContent = "TRIMMED OUTSIDE SELECTION"; if (wasPlaying) startAudio(0);
     }
 
     function cutSelection() {
-        if (!audioBuf) return;
-        copySelection();
-        saveState();
-
-        const oldDur = audioBuf.duration;
-        const sSmp = Math.floor(loopStart * audioBuf.sampleRate);
-        const eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
-        const len = audioBuf.length - (eSmp - sSmp);
-        
-        if (len <= 0) { status.textContent = "ERR: CANNOT CUT ENTIRE FILE"; return; }
-
-        const newBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate);
-        for(let c=0; c<audioBuf.numberOfChannels; c++) {
-            const oldData = audioBuf.getChannelData(c);
-            const newData = newBuf.getChannelData(c);
-            newData.set(oldData.subarray(0, sSmp), 0);
-            newData.set(oldData.subarray(eSmp), sSmp);
-        }
-        
-        const wasPlaying = isPlaying;
-        if (wasPlaying) stopAudio();
-        
-        audioBuf = newBuf;
-        
-        zoomH = Math.max(1, zoomH * (audioBuf.duration / oldDur));
-        
-        loopEnd = Math.min(loopStart + 0.05, audioBuf.duration);
-        currentPlayTime = Math.min(currentPlayTime, audioBuf.duration);
-        
-        updateUI(); draw(currentPlayTime);
-        status.textContent = "CUT SELECTION";
-        if (wasPlaying) startAudio(loopStart);
+        if (!audioBuf) return; copySelection(); saveState(); const oldDur = audioBuf.duration; const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = audioBuf.length - (eSmp - sSmp);
+        if (len <= 0) { status.textContent = "ERR: CANNOT CUT ENTIRE FILE"; return; } const newBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate);
+        for(let c=0; c<audioBuf.numberOfChannels; c++) { const oldData = audioBuf.getChannelData(c); const newData = newBuf.getChannelData(c); newData.set(oldData.subarray(0, sSmp), 0); newData.set(oldData.subarray(eSmp), sSmp); }
+        const wasPlaying = isPlaying; if (wasPlaying) stopAudio();
+        audioBuf = newBuf; zoomH = Math.max(1, zoomH * (audioBuf.duration / oldDur)); loopEnd = Math.min(loopStart + 0.05, audioBuf.duration); currentPlayTime = Math.min(currentPlayTime, audioBuf.duration);
+        updateUI(); draw(currentPlayTime); status.textContent = "CUT SELECTION"; if (wasPlaying) startAudio(loopStart);
     }
 
     function pasteSelection() {
-        if (!audioBuf || !clipboardData) return;
-        saveState();
-        
-        const oldDur = audioBuf.duration;
-        const insertSmp = Math.floor(currentPlayTime * audioBuf.sampleRate);
-        const newLen = audioBuf.length + clipboardData.length;
+        if (!audioBuf || !clipboardData) return; saveState(); const oldDur = audioBuf.duration; const insertSmp = Math.floor(currentPlayTime * audioBuf.sampleRate); const newLen = audioBuf.length + clipboardData.length;
+        const newBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, newLen, audioBuf.sampleRate);
+        for(let c=0; c<audioBuf.numberOfChannels; c++) { const oldData = audioBuf.getChannelData(c); const clipData = clipboardData.numberOfChannels > c ? clipboardData.getChannelData(c) : clipboardData.getChannelData(0); const newData = newBuf.getChannelData(c); newData.set(oldData.subarray(0, insertSmp), 0); newData.set(clipData, insertSmp); newData.set(oldData.subarray(insertSmp), insertSmp + clipData.length); }
+        const wasPlaying = isPlaying; if (wasPlaying) stopAudio();
+        audioBuf = newBuf; zoomH = Math.max(1, zoomH * (audioBuf.duration / oldDur)); loopStart = currentPlayTime; loopEnd = currentPlayTime + clipboardData.duration;
+        updateUI(); draw(currentPlayTime); status.textContent = "PASTED (INSERTED) AT PLAYHEAD"; if (wasPlaying) startAudio(loopStart);
+    }
+
+    function mixPasteSelection() {
+        if (!audioBuf || !clipboardData) return; saveState(); 
+        const oldDur = audioBuf.duration; const insertSmp = Math.floor(currentPlayTime * audioBuf.sampleRate); 
+        const newLen = Math.max(audioBuf.length, insertSmp + clipboardData.length);
         const newBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, newLen, audioBuf.sampleRate);
         
-        for(let c=0; c<audioBuf.numberOfChannels; c++) {
-            const oldData = audioBuf.getChannelData(c);
-            const clipData = clipboardData.getChannelData(c);
-            const newData = newBuf.getChannelData(c);
+        for(let c=0; c<audioBuf.numberOfChannels; c++) { 
+            const oldData = audioBuf.getChannelData(c); 
+            const clipData = clipboardData.numberOfChannels > c ? clipboardData.getChannelData(c) : clipboardData.getChannelData(0); 
+            const newData = newBuf.getChannelData(c); 
             
-            newData.set(oldData.subarray(0, insertSmp), 0);
-            newData.set(clipData, insertSmp);
-            newData.set(oldData.subarray(insertSmp), insertSmp + clipData.length);
+            newData.set(oldData, 0); 
+            
+            for (let i = 0; i < clipData.length; i++) {
+                newData[insertSmp + i] += clipData[i]; 
+            }
         }
-        
-        const wasPlaying = isPlaying;
-        if (wasPlaying) stopAudio();
-        
-        audioBuf = newBuf;
-
-        zoomH = Math.max(1, zoomH * (audioBuf.duration / oldDur));
-        
-        loopStart = currentPlayTime;
-        loopEnd = currentPlayTime + clipboardData.duration;
-        
-        updateUI(); draw(currentPlayTime);
-        status.textContent = "PASTED AT PLAYHEAD";
+        const wasPlaying = isPlaying; if (wasPlaying) stopAudio();
+        audioBuf = newBuf; zoomH = Math.max(1, zoomH * (audioBuf.duration / oldDur)); 
+        loopStart = currentPlayTime; loopEnd = currentPlayTime + clipboardData.duration;
+        updateUI(); draw(currentPlayTime); status.textContent = "MIX PASTED (SUMMED) AT PLAYHEAD"; 
         if (wasPlaying) startAudio(loopStart);
     }
 
     function silenceSelection() {
-        if (!audioBuf) return;
-        saveState();
-
-        const sSmp = Math.floor(loopStart * audioBuf.sampleRate);
-        const eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
-        const len = eSmp - sSmp;
-        if (len <= 0) return;
-
-        for (let c = 0; c < audioBuf.numberOfChannels; c++) {
-            const data = audioBuf.getChannelData(c);
-            for (let i = 0; i < len; i++) {
-                data[sSmp + i] = 0; 
-            }
-        }
-        
-        draw(currentPlayTime);
-        status.textContent = "REGION SILENCED";
+        if (!audioBuf) return; saveState(); const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp; if (len <= 0) return;
+        for (let c = 0; c < audioBuf.numberOfChannels; c++) { const data = audioBuf.getChannelData(c); for (let i = 0; i < len; i++) { data[sSmp + i] = 0; } } draw(currentPlayTime); status.textContent = "REGION SILENCED";
     }
 
-    function openAmplifyModal() {
-        if (!audioBuf) return;
-        ampSlider.value = 100;
-        ampValueVal.innerText = "1.00x";
-        amplifyModal.style.display = 'flex';
-    }
+    function openAmplifyModal() { if (!audioBuf) return; ampSlider.value = 100; ampValueVal.innerText = "1.00x"; amplifyModal.style.display = 'flex'; }
+    function closeAmplifyModal() { amplifyModal.style.display = 'none'; if (isPreviewingAmp) stopAudio(); }
+    ampSlider.oninput = (e) => { let mult = e.target.value / 100; ampValueVal.innerText = mult.toFixed(2) + "x"; if (masterGain && isPreviewingAmp) masterGain.gain.value = mult; };
+    btnPreviewAmp.onclick = async () => { if (isPreviewingAmp) { stopAudio(); } else { getAudioContext(); if (audioCtx.state === 'suspended') await audioCtx.resume(); isPreviewingAmp = true; masterGain.gain.value = ampSlider.value / 100; let tempLoop = isLoopingActive; isLoopingActive = true; startAudio(loopStart); isLoopingActive = tempLoop; btnPreviewAmp.style.color = currentThemeColor; } };
+    btnApplyAmp.onclick = () => { if (!audioBuf) return; let mult = ampSlider.value / 100; if (mult === 1.0) { closeAmplifyModal(); return; } saveState(); const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp; for (let c = 0; c < audioBuf.numberOfChannels; c++) { const data = audioBuf.getChannelData(c); for (let i = 0; i < len; i++) { data[sSmp + i] *= mult; } } closeAmplifyModal(); draw(currentPlayTime); status.textContent = `AMPLIFIED REGION BY ${mult.toFixed(2)}x`; };
 
-    function closeAmplifyModal() {
-        amplifyModal.style.display = 'none';
-        if (isPreviewingAmp) {
-            stopAudio();
-        }
-    }
-
-    ampSlider.oninput = (e) => {
-        let mult = e.target.value / 100;
-        ampValueVal.innerText = mult.toFixed(2) + "x";
-        if (masterGain && isPreviewingAmp) {
-            masterGain.gain.value = mult;
-        }
+    function openFXModal() { if (!audioBuf) return; getAudioContext(); if (!proceduralIR) proceduralIR = generateReverbIR(audioCtx); fxSlider.value = 50; fxValueVal.innerText = "50%"; fxModal.style.display = 'flex'; }
+    function closeFXModal() { fxModal.style.display = 'none'; if (isPreviewingFX) stopAudio(); }
+    fxSlider.oninput = (e) => { fxValueVal.innerText = e.target.value + "%"; if (isPreviewingFX) { let temp = isPlaying; if (temp) stopAudio(); startAudio(currentPlayTime); } };
+    fxTypeSelect.onchange = () => { if (isPreviewingFX) { let temp = isPlaying; if (temp) stopAudio(); startAudio(currentPlayTime); } };
+    btnPreviewFX.onclick = async () => { if (isPreviewingFX) { stopAudio(); } else { getAudioContext(); if (audioCtx.state === 'suspended') await audioCtx.resume(); isPreviewingFX = true; let tempLoop = isLoopingActive; isLoopingActive = true; startAudio(loopStart); isLoopingActive = tempLoop; btnPreviewFX.style.color = currentThemeColor; } };
+    btnApplyFX.onclick = async () => {
+        if (!audioBuf) return; closeFXModal(); status.textContent = "RENDERING FX..."; saveState();
+        const type = fxTypeSelect.value; const intensity = fxSlider.value / 100; const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const selLen = eSmp - sSmp; if (selLen <= 0) return;
+        const tailTime = (type === 'tube') ? 0.1 : 3.0; const tailSmp = Math.floor(tailTime * audioBuf.sampleRate); const renderLen = selLen + tailSmp;
+        const OfflineCtxClass = window.OfflineAudioContext || window.webkitOfflineAudioContext; const offCtx = new OfflineCtxClass(audioBuf.numberOfChannels, renderLen, audioBuf.sampleRate);
+        const source = offCtx.createBufferSource(); const sliceBuf = offCtx.createBuffer(audioBuf.numberOfChannels, selLen, audioBuf.sampleRate); for(let c=0; c<audioBuf.numberOfChannels; c++) { sliceBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); } source.buffer = sliceBuf; const fx = buildFXChain(offCtx, type, intensity);
+        source.connect(fx.input); fx.output.connect(offCtx.destination); source.start(0); const renderedBuf = await offCtx.startRendering();
+        const newTotalLen = Math.max(audioBuf.length, sSmp + renderLen); const newBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, newTotalLen, audioBuf.sampleRate);
+        for (let c = 0; c < audioBuf.numberOfChannels; c++) { const oldData = audioBuf.getChannelData(c); const newData = newBuf.getChannelData(c); const renderData = renderedBuf.getChannelData(c); newData.set(oldData.subarray(0, sSmp), 0); if (oldData.length > sSmp + renderLen) { newData.set(oldData.subarray(sSmp + renderLen), sSmp + renderLen); } for (let i = 0; i < renderLen; i++) { const targetIdx = sSmp + i; if (targetIdx < sSmp + selLen) { newData[targetIdx] = renderData[i]; } else { const existing = (targetIdx < oldData.length) ? oldData[targetIdx] : 0; newData[targetIdx] = existing + renderData[i]; } } }
+        const oldDur = audioBuf.duration; audioBuf = newBuf; zoomH = Math.max(1, zoomH * (audioBuf.duration / oldDur)); draw(currentPlayTime); updateUI(); status.textContent = `APPLIED [${type.toUpperCase()}] WITH BLEED`;
     };
 
-    btnPreviewAmp.onclick = () => {
-        if (isPreviewingAmp) {
-            stopAudio();
-        } else {
-            getAudioContext();
-            isPreviewingAmp = true;
-            masterGain.gain.value = ampSlider.value / 100;
-            
-            let tempLoop = isLoopingActive;
-            isLoopingActive = true;
-            startAudio(loopStart);
-            isLoopingActive = tempLoop;
-            
-            btnPreviewAmp.style.color = currentThemeColor;
-        }
-    };
-
-    btnApplyAmp.onclick = () => {
-        if (!audioBuf) return;
-        
-        let mult = ampSlider.value / 100;
-        if (mult === 1.0) { closeAmplifyModal(); return; }
-
-        saveState();
-
-        const sSmp = Math.floor(loopStart * audioBuf.sampleRate);
-        const eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
-        const len = eSmp - sSmp;
-        
-        for (let c = 0; c < audioBuf.numberOfChannels; c++) {
-            const data = audioBuf.getChannelData(c);
-            for (let i = 0; i < len; i++) {
-                data[sSmp + i] *= mult; 
-            }
-        }
-        
-        closeAmplifyModal();
-        draw(currentPlayTime);
-        status.textContent = `AMPLIFIED REGION BY ${mult.toFixed(2)}x`;
-    };
-
-    function fadeInSelection() {
-        if (!audioBuf) return;
-        saveState();
-
-        const sSmp = Math.floor(loopStart * audioBuf.sampleRate);
-        const eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
-        const len = eSmp - sSmp;
-        if (len <= 0) return;
-
-        for (let c = 0; c < audioBuf.numberOfChannels; c++) {
-            const data = audioBuf.getChannelData(c);
-            for (let i = 0; i < len; i++) {
-                data[sSmp + i] *= (i / len); 
-            }
-        }
-        
-        draw(currentPlayTime);
-        status.textContent = "FADE IN APPLIED";
-    }
-
-    function fadeOutSelection() {
-        if (!audioBuf) return;
-        saveState();
-
-        const sSmp = Math.floor(loopStart * audioBuf.sampleRate);
-        const eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
-        const len = eSmp - sSmp;
-        if (len <= 0) return;
-
-        for (let c = 0; c < audioBuf.numberOfChannels; c++) {
-            const data = audioBuf.getChannelData(c);
-            for (let i = 0; i < len; i++) {
-                data[sSmp + i] *= (1.0 - (i / len)); 
-            }
-        }
-        
-        draw(currentPlayTime);
-        status.textContent = "FADE OUT APPLIED";
-    }
-
-    function zoomIn() { zoomH = Math.min(50000, zoomH * 1.5); draw(currentPlayTime); updateUI(); }
-    function zoomOut() { zoomH = Math.max(1, zoomH / 1.5); draw(currentPlayTime); updateUI(); }
+    function fadeInSelection() { if (!audioBuf) return; saveState(); const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp; if (len <= 0) return; for (let c = 0; c < audioBuf.numberOfChannels; c++) { const data = audioBuf.getChannelData(c); for (let i = 0; i < len; i++) { data[sSmp + i] *= (i / len); } } draw(currentPlayTime); status.textContent = "FADE IN APPLIED"; }
+    function fadeOutSelection() { if (!audioBuf) return; saveState(); const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp; if (len <= 0) return; for (let c = 0; c < audioBuf.numberOfChannels; c++) { const data = audioBuf.getChannelData(c); for (let i = 0; i < len; i++) { data[sSmp + i] *= (1.0 - (i / len)); } } draw(currentPlayTime); status.textContent = "FADE OUT APPLIED"; }
+    function zoomIn() { zoomH = Math.min(50000, zoomH * 1.5); draw(currentPlayTime); updateUI(); } function zoomOut() { zoomH = Math.max(1, zoomH / 1.5); draw(currentPlayTime); updateUI(); }
 
     function draw(now = null) {
         const w = canvas.width, h = canvas.height;
         ctx.fillStyle = '#050505'; ctx.fillRect(0,0,w,h);
-
         const gutterHeight = 18;
-        ctx.fillStyle = '#080808';
-        ctx.fillRect(0, 0, w, gutterHeight);
-        ctx.fillStyle = '#222';
-        ctx.fillRect(0, gutterHeight, w, 1);
-
-        if (!audioBuf) return;
-        
-        const data = audioBuf.getChannelData(0);
-        const { startSmp, visibleSamples } = getVisibleData();
-        const step = Math.max(1, visibleSamples / w);
-        const channelHeight = h - gutterHeight;
+        const bottomGutterHeight = 24; 
+        const channelHeight = h - gutterHeight - bottomGutterHeight;
         const yOffset = gutterHeight;
-        
-        ctx.beginPath(); 
-        ctx.strokeStyle = currentThemeColor; 
-        ctx.lineWidth = 1;
 
-        for (let i = 0; i < w; i++) {
-            const b = Math.floor(startSmp + (i * step));
-            if (b >= data.length) break;
-            let min = 1.0, max = -1.0;
-            for(let j=0; j<step; j++) {
-                const v = data[b+j] || 0; if(v<min) min=v; if(v>max) max=v;
-            }
-            const yMin = yOffset + (1 + min * ampZoom) * channelHeight / 2;
-            const yMax = yOffset + (1 + max * ampZoom) * channelHeight / 2;
-            ctx.moveTo(i, yMin); ctx.lineTo(i, yMax);
-        }
-        ctx.stroke();
+        ctx.fillStyle = '#080808'; ctx.fillRect(0, 0, w, gutterHeight);
+        ctx.fillStyle = '#222'; ctx.fillRect(0, gutterHeight, w, 1);
 
-        if (isChopMode) {
-            for (let i = 0; i < sliceMarkers.length; i++) {
-                let mX = timeToX(sliceMarkers[i]);
-                ctx.strokeStyle = currentThemeColor;
-                ctx.lineWidth = 2;
-                ctx.beginPath(); ctx.moveTo(mX, gutterHeight); ctx.lineTo(mX, h); ctx.stroke();
+        ctx.fillStyle = '#080808'; ctx.fillRect(0, h - bottomGutterHeight, w, bottomGutterHeight);
+        ctx.fillStyle = '#222'; ctx.fillRect(0, h - bottomGutterHeight, w, 1);
 
-                ctx.fillStyle = currentThemeColor;
-                ctx.fillRect(mX - 6, gutterHeight, 12, 14);
-                ctx.fillStyle = '#000';
+        if (audioBuf || isRecording) {
+            const { startSmp, visibleSamples } = getVisibleData();
+            const sr = audioBuf ? audioBuf.sampleRate : (audioCtx ? audioCtx.sampleRate : 44100);
+            const startTime = startSmp / sr;
+            const endTime = visibleSamples > 0 ? (startSmp + visibleSamples) / sr : (w / 100);
+
+            // Draw Peak Separator Lines
+            if (showPeakSeparators) {
+                ctx.lineWidth = 1;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
                 ctx.font = '9px DATA';
-                ctx.fillText(`${i+1}`, mX - 3, gutterHeight + 11);
+
+                const drawPeakLine = (amp, color, label) => {
+                    let yTop = yOffset + (1 - amp * ampZoom) * channelHeight / 2;
+                    let yBot = yOffset + (1 + amp * ampZoom) * channelHeight / 2;
+                    
+                    ctx.strokeStyle = color; ctx.fillStyle = color;
+                    if(yTop > yOffset && yTop < yOffset + channelHeight) { 
+                        ctx.beginPath(); ctx.moveTo(0, yTop); ctx.lineTo(w, yTop); ctx.stroke();
+                        ctx.fillText('+' + label, 5, yTop - 6);
+                    }
+                    if (amp !== 0) {
+                        if(yBot > yOffset && yBot < yOffset + channelHeight) { 
+                            ctx.beginPath(); ctx.moveTo(0, yBot); ctx.lineTo(w, yBot); ctx.stroke(); 
+                            ctx.fillText('-' + label, 5, yBot - 6);
+                        }
+                    }
+                };
+
+                drawPeakLine(0, 'rgba(255, 255, 255, 0.3)', '0.0'); // Center
+                drawPeakLine(0.5, 'rgba(255, 255, 255, 0.1)', '0.5'); // Mid
+                drawPeakLine(0.8, 'rgba(255, 255, 0, 0.2)', '0.8'); // Headroom safe
+                drawPeakLine(1.0, 'rgba(255, 0, 85, 0.3)', '1.0'); // Clip limit
+            }
+
+            if (isBpmMode) {
+                const beatDur = 60 / currentBpm;
+                const firstBeat = Math.floor(startTime / beatDur);
+                const lastBeat = Math.ceil(endTime / beatDur);
+
+                for (let b = firstBeat; b <= lastBeat; b++) {
+                    const t = b * beatDur;
+                    const x = timeToX(t);
+                    if (x < 0 || x > w) continue;
+
+                    if (b % 4 === 0) { // Bar line
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'; ctx.fillRect(x, gutterHeight, 1, channelHeight);
+                        ctx.fillStyle = '#666'; ctx.fillRect(x, h - bottomGutterHeight, 1, 8);
+                        ctx.fillStyle = '#888'; ctx.font = '10px DATA'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+                        ctx.fillText((b/4 + 1).toString(), x, h - bottomGutterHeight + 8);
+                    } else { // Beat line
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.03)'; ctx.fillRect(x, gutterHeight, 1, channelHeight);
+                        ctx.fillStyle = '#333'; ctx.fillRect(x, h - bottomGutterHeight, 1, 4);
+                    }
+                }
+            } else {
+                ctx.fillStyle = '#555'; ctx.font = '10px DATA'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+                const durationVis = endTime - startTime;
+                let tickStep = 1.0;
+                if (durationVis < 0.1) tickStep = 0.01;
+                else if (durationVis < 1) tickStep = 0.1;
+                else if (durationVis < 5) tickStep = 0.5;
+                else if (durationVis > 60) tickStep = 10.0;
+                else if (durationVis > 20) tickStep = 5.0;
+
+                const firstTick = Math.ceil(startTime / tickStep) * tickStep;
+                for (let t = firstTick; t <= endTime; t += tickStep) {
+                    const x = timeToX(t);
+                    ctx.fillStyle = '#444'; ctx.fillRect(x, h - bottomGutterHeight, 1, 6);
+                    ctx.fillStyle = '#777'; let label = tickStep < 1 ? t.toFixed(2) : t.toFixed(0);
+                    ctx.fillText(label + 's', x, h - bottomGutterHeight + 8);
+                }
+            }
+        }
+
+        if (audioBuf) {
+            const { startSmp, visibleSamples } = getVisibleData(); const step = Math.max(1, visibleSamples / w);
+            ctx.beginPath(); ctx.strokeStyle = currentThemeColor; ctx.lineWidth = 1; const data = audioBuf.getChannelData(0);
+            
+            for (let i = 0; i < w; i++) {
+                const b = Math.floor(startSmp + (i * step)); if (b >= audioBuf.length) break;
+                let min = 1.0, max = -1.0; 
+                for(let j=0; j<step; j++) { 
+                    let idx = b + j; let v = data[idx] || 0; 
+                    if(v<min) min=v; if(v>max) max=v; 
+                }
+                const yMin = yOffset + (1 + min * ampZoom) * channelHeight / 2; 
+                const yMax = yOffset + (1 + max * ampZoom) * channelHeight / 2;
+                if (i === 0) ctx.moveTo(i, yMin); else { ctx.lineTo(i, yMin); ctx.lineTo(i, yMax); }
+            }
+            ctx.stroke();
+
+            if (isChopMode) {
+                for (let i = 0; i < sliceMarkers.length; i++) {
+                    let mX = timeToX(sliceMarkers[i]); ctx.strokeStyle = currentThemeColor; ctx.lineWidth = 2; 
+                    ctx.beginPath(); ctx.moveTo(mX, gutterHeight); ctx.lineTo(mX, h - bottomGutterHeight); ctx.stroke();
+                    ctx.fillStyle = currentThemeColor; ctx.fillRect(mX - 6, gutterHeight, 12, 14); ctx.fillStyle = '#000'; ctx.font = '9px DATA'; ctx.fillText(`${i+1}`, mX - 3, gutterHeight + 11);
+                }
+            } else {
+                const sX = timeToX(loopStart), eX = timeToX(loopEnd);
+                ctx.fillStyle = hexToRgba(currentThemeColor, 0.15); ctx.fillRect(sX, gutterHeight, eX - sX, channelHeight);
+                ctx.strokeStyle = currentThemeColor; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(sX, gutterHeight); ctx.lineTo(sX, h - bottomGutterHeight); ctx.stroke(); 
+                ctx.fillStyle = currentThemeColor; ctx.fillRect(sX-6, gutterHeight, 12, 14); ctx.fillStyle = '#000'; ctx.font = '10px DATA'; ctx.fillText('S', sX-3, gutterHeight + 11);
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(eX, gutterHeight); ctx.lineTo(eX, h - bottomGutterHeight); ctx.stroke(); 
+                ctx.fillStyle = '#fff'; ctx.fillRect(eX-6, h - bottomGutterHeight - 14, 12, 14); ctx.fillStyle = '#000'; ctx.font = '10px DATA'; ctx.fillText('E', eX-3, h - bottomGutterHeight - 3);
+            }
+            
+            if (!isChopMode && !isRecording && (loopEnd - loopStart > 0.01)) {
+                const eX = timeToX(loopEnd);
+                if (eX > 0 && eX <= w) {
+                    regionVolWheel.style.display = 'flex';
+                    regionVolWheel.style.left = (eX - 28) + 'px';
+                    regionVolWheel.style.top = (gutterHeight + 6) + 'px';
+                } else {
+                    regionVolWheel.style.display = 'none';
+                }
+            } else {
+                regionVolWheel.style.display = 'none';
             }
         } else {
-            const sX = timeToX(loopStart), eX = timeToX(loopEnd);
-            
-            ctx.fillStyle = hexToRgba(currentThemeColor, 0.15); 
-            ctx.fillRect(sX, gutterHeight, eX - sX, h - gutterHeight);
+            regionVolWheel.style.display = 'none';
+        }
 
-            ctx.strokeStyle = currentThemeColor; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(sX, gutterHeight); ctx.lineTo(sX, h); ctx.stroke();
-            ctx.fillStyle = currentThemeColor; ctx.fillRect(sX-6, gutterHeight, 12, 14);
-            ctx.fillStyle = '#000'; ctx.font = '10px DATA'; ctx.fillText('S', sX-3, gutterHeight + 11);
+        if (isRecording) {
+            ctx.beginPath(); ctx.strokeStyle = '#ff0055'; ctx.lineWidth = 1.5; 
             
-            ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(eX, gutterHeight); ctx.lineTo(eX, h); ctx.stroke();
-            ctx.fillStyle = '#fff'; ctx.fillRect(eX-6, h-14, 12, 14);
-            ctx.fillStyle = '#000'; ctx.font = '10px DATA'; ctx.fillText('E', eX-3, h-3);
+            if (audioBuf) {
+                const sX = timeToX(recordStartOffset); const eX = timeToX(recordStartOffset + (audioCtx.currentTime - recordingStartTime)); const points = liveWaveformData.length;
+                if (points > 0 && eX > sX) {
+                    const stepX = (eX - sX) / points;
+                    for (let i = 0; i < points; i++) {
+                        const x = sX + (i * stepX); if (x < 0 || x > w) continue;
+                        const { min, max } = liveWaveformData[i]; const yMin = yOffset + (1 + min) * channelHeight / 2; const yMax = yOffset + (1 + max) * channelHeight / 2;
+                        if (i === 0) ctx.moveTo(x, yMin); else { ctx.lineTo(x, yMin); ctx.lineTo(x, yMax); }
+                    }
+                }
+                ctx.stroke();
+            } else {
+                const startIdx = Math.max(0, liveWaveformData.length - w);
+                for (let i = 0; i < w; i++) {
+                    const dataIdx = startIdx + i; if (dataIdx >= liveWaveformData.length) break;
+                    const { min, max } = liveWaveformData[dataIdx]; const yMin = yOffset + (1 + min) * channelHeight / 2; const yMax = yOffset + (1 + max) * channelHeight / 2;
+                    if (i === 0) ctx.moveTo(i, yMin); else { ctx.lineTo(i, yMin); ctx.lineTo(i, yMax); }
+                }
+                ctx.stroke();
+                const pX = Math.min(w, liveWaveformData.length);
+                ctx.fillStyle = '#ff0055'; ctx.beginPath(); ctx.moveTo(pX - 6, 0); ctx.lineTo(pX + 6, 0); ctx.lineTo(pX, gutterHeight - 2); ctx.fill(); ctx.beginPath(); ctx.moveTo(pX, gutterHeight); ctx.lineTo(pX, h - bottomGutterHeight); ctx.stroke();
+            }
         }
         
-        if (now !== null) {
+        if (now !== null && (!isRecording || audioBuf)) {
             const pX = timeToX(now);
-            if (pX >= -10 && pX <= w + 10) {
-                ctx.fillStyle = '#ff0055';
-                ctx.beginPath();
-                ctx.moveTo(pX - 6, 0);
-                ctx.lineTo(pX + 6, 0);
-                ctx.lineTo(pX, gutterHeight - 2);
-                ctx.fill();
-
-                ctx.strokeStyle = '#ff0055'; 
-                ctx.lineWidth = 1.5; 
-                ctx.beginPath();
-                ctx.moveTo(pX, gutterHeight); ctx.lineTo(pX, h); ctx.stroke();
+            if (pX >= -10 && pX <= w + 10) { 
+                ctx.fillStyle = '#ff0055'; ctx.beginPath(); ctx.moveTo(pX - 6, 0); ctx.lineTo(pX + 6, 0); ctx.lineTo(pX, gutterHeight - 2); ctx.fill(); 
+                ctx.strokeStyle = '#ff0055'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(pX, gutterHeight); ctx.lineTo(pX, h - bottomGutterHeight); ctx.stroke(); 
+            }
+        }
+        
+        if (audioBuf) {
+            const { visibleSamples, totalLen } = getVisibleData();
+            const trackWidth = scrollTrack.clientWidth;
+            if (totalLen <= visibleSamples || totalLen === 0) {
+                scrollThumb.style.width = '100%'; scrollThumb.style.left = '0px';
+            } else {
+                const thumbWidth = Math.max(20, (visibleSamples / totalLen) * trackWidth);
+                scrollThumb.style.width = `${thumbWidth}px`;
+                const maxScrollLeft = trackWidth - thumbWidth;
+                scrollThumb.style.left = `${scrollPos * maxScrollLeft}px`;
             }
         }
     }
 
     function renderLoop() {
         if (!isPlaying) return;
-        
         if (isChopMode && isTriggerMode) {
-            let absoluteTime = audioCtx.currentTime - playbackStartTime;
-            currentPlayTime = absoluteTime;
-            draw(currentPlayTime);
-            updateTimeDisplay(currentPlayTime);
-            aniFrame = requestAnimationFrame(renderLoop);
-            return;
+            let absoluteTime = audioCtx.currentTime - playbackStartTime; currentPlayTime = absoluteTime;
+            autoScroll(currentPlayTime); draw(currentPlayTime); updateTimeDisplay(currentPlayTime); aniFrame = requestAnimationFrame(renderLoop); return;
         }
+        const dur = loopEnd - loopStart; if (dur <= 0) return;
+        let absoluteTime = audioCtx.currentTime - playbackStartTime;
+        if (isLoopingActive && !isRecording) {
+            let offset = absoluteTime - loopStart; if (offset < 0) offset = 0; currentPlayTime = loopStart + (offset % dur);
+        } else { currentPlayTime = absoluteTime; if (currentPlayTime >= audioBuf.duration && !isRecording) currentPlayTime = audioBuf.duration; }
+        
+        autoScroll(currentPlayTime);
+        draw(currentPlayTime); updateTimeDisplay(currentPlayTime); aniFrame = requestAnimationFrame(renderLoop);
+    }
+
+    function updateUI() { 
+        if (!audioBuf) {
+            scrollThumb.style.width = '100%'; scrollThumb.style.left = '0px'; return; 
+        }
+        loopDisp.textContent = `${loopStart.toFixed(3)}S >> ${loopEnd.toFixed(3)}S`; 
+        zoomMagDisp.textContent = `${Math.round(zoomH)}X`; ampMagDisp.textContent = `${ampZoom.toFixed(1)}X`; 
 
         const dur = loopEnd - loopStart;
-        if (dur <= 0) return;
-        
-        let absoluteTime = audioCtx.currentTime - playbackStartTime;
-        
-        if (isLoopingActive) {
-            let offset = absoluteTime - loopStart;
-            if (offset < 0) offset = 0;
-            currentPlayTime = loopStart + (offset % dur);
-        } else {
-            currentPlayTime = absoluteTime;
-            if (currentPlayTime >= audioBuf.duration) {
-                currentPlayTime = audioBuf.duration;
+        if (dur > 0.05) {
+            let beatsArray = [1, 2, 4, 8, 16, 32, 64];
+            let bestBpm = (4 * 60) / dur; 
+            let bestBeats = 4;
+            for (let b of beatsArray) {
+                let bpm = (b * 60) / dur;
+                if (bpm >= 70 && bpm <= 160) {
+                    bestBpm = bpm;
+                    bestBeats = b;
+                    break;
+                }
             }
+            selBpmDisp.textContent = `${bestBpm.toFixed(1)} [${bestBeats} BEATS]`;
+        } else {
+            selBpmDisp.textContent = `--`;
         }
-
-        draw(currentPlayTime);
-        updateTimeDisplay(currentPlayTime);
-        aniFrame = requestAnimationFrame(renderLoop);
     }
 
-    function updateUI() {
-        if (!audioBuf) return;
-        loopDisp.textContent = `${loopStart.toFixed(3)}S >> ${loopEnd.toFixed(3)}S`;
-        zoomMagDisp.textContent = `${Math.round(zoomH)}X`;
-        ampMagDisp.textContent = `${ampZoom.toFixed(1)}X`;
-    }
-
-    async function handleFile(e) {
-        const file = e.target.files[0]; if (!file) return;
-        getAudioContext(); status.textContent = 'SCANNING...';
-        try {
-            const ab = await file.arrayBuffer();
-            audioBuf = await audioCtx.decodeAudioData(ab);
-            loopStart = 0; loopEnd = audioBuf.duration;
-            zoomH = 1; scrollPos = 0; currentPlayTime = 0;
-            undoStack = []; sliceMarkers = [];
-            
-            menuUndo.disabled = true;
-            menuCut.disabled = false; menuCopy.disabled = false;
-            menuExport.disabled = false; menuExportSlices.disabled = false;
-            menuSilence.disabled = false; menuAmplify.disabled = false;
-            menuFadeIn.disabled = false; menuFadeOut.disabled = false;
-            btnPlay.disabled = false; btnStop.disabled = false; 
-            btnLoop.disabled = false; btnChopMode.disabled = false;
-
-            status.textContent = `READY: ${file.name.toUpperCase()}`;
-            updateUI(); draw(0); updateTimeDisplay(0);
-        } catch (err) { status.textContent = "ERR: FILE_CORRUPT"; }
-    }
+    async function handleFile(e) { const file = e.target.files[0]; if (!file) return; getAudioContext(); status.textContent = 'SCANNING...'; try { const ab = await file.arrayBuffer(); const decodedBuf = await audioCtx.decodeAudioData(ab); loadAudioBuffer(decodedBuf, file.name); } catch (err) { status.textContent = "ERR: FILE_CORRUPT"; } }
 
     function encodeWAV(buf) {
-        let n = buf.numberOfChannels, sr = buf.sampleRate, len = buf.length * n * 2 + 44;
-        let ab = new ArrayBuffer(len), view = new DataView(ab), pos = 0;
+        let n = buf.numberOfChannels, sr = buf.sampleRate, len = buf.length * n * 2 + 44; let ab = new ArrayBuffer(len), view = new DataView(ab), pos = 0;
         const s = (str) => { for(let i=0; i<str.length; i++) view.setUint8(pos++, str.charCodeAt(i)); };
-        s('RIFF'); view.setUint32(pos, len-8, true); pos+=4; s('WAVEfmt '); view.setUint32(pos, 16, true); pos+=4;
-        view.setUint16(pos, 1, true); pos+=2; view.setUint16(pos, n, true); pos+=2; view.setUint32(pos, sr, true); pos+=4;
-        view.setUint32(pos, sr*n*2, true); pos+=4; view.setUint16(pos, n*2, true); pos+=2; view.setUint16(pos, 16, true); pos+=2;
-        s('data'); view.setUint32(pos, len-pos-4, true); pos+=4;
-        for(let i=0; i<buf.length; i++) { for(let c=0; c<n; c++) { let v = Math.max(-1, Math.min(1, buf.getChannelData(c)[i])); view.setInt16(pos, v < 0 ? v * 0x8000 : v * 0x7FFF, true); pos+=2; } }
-        return ab;
+        s('RIFF'); view.setUint32(pos, len-8, true); pos+=4; s('WAVEfmt '); view.setUint32(pos, 16, true); pos+=4; view.setUint16(pos, 1, true); pos+=2; view.setUint16(pos, n, true); pos+=2; view.setUint32(pos, sr, true); pos+=4; view.setUint32(pos, sr*n*2, true); pos+=4; view.setUint16(pos, n*2, true); pos+=2; view.setUint16(pos, 16, true); pos+=2; s('data'); view.setUint32(pos, len-pos-4, true); pos+=4;
+        for(let i=0; i<buf.length; i++) { for(let c=0; c<n; c++) { let v = Math.max(-1, Math.min(1, buf.getChannelData(c)[i])); view.setInt16(pos, v < 0 ? v * 0x8000 : v * 0x7FFF, true); pos+=2; } } return ab;
     }
-
-    function exportWav() {
-        if (!audioBuf) return;
-        const sSmp = Math.floor(loopStart * audioBuf.sampleRate), eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
-        const len = eSmp - sSmp;
-        if (len <= 0) return;
-        const nBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate);
-        for(let c=0; c<audioBuf.numberOfChannels; c++) { nBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); }
-        const wav = encodeWAV(nBuf);
-        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([wav], {type:'audio/wav'}));
-        a.download = `AZ9000_${Date.now()}.wav`; a.click();
-    }
-
+    function exportWav() { if (!audioBuf) return; const sSmp = Math.floor(loopStart * audioBuf.sampleRate), eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp; if (len <= 0) return; const nBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate); for(let c=0; c<audioBuf.numberOfChannels; c++) { nBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); } const wav = encodeWAV(nBuf); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([wav], {type:'audio/wav'})); a.download = `AZ9000_${Date.now()}.wav`; a.click(); }
     async function exportSlices() {
-        if (!audioBuf || sliceMarkers.length === 0) {
-            alert("No slice points defined."); return;
-        }
-
-        let timestamp = Date.now();
-        let folderName = `AZ9000_Slices_${timestamp}/`;
-        let sortedSlices = [0, ...sliceMarkers.sort((a,b)=>a-b), audioBuf.duration];
-        let sliceBlobs = [];
-
-        for (let i = 0; i < sortedSlices.length - 1; i++) {
-            let sSmp = Math.floor(sortedSlices[i] * audioBuf.sampleRate);
-            let eSmp = Math.floor(sortedSlices[i+1] * audioBuf.sampleRate);
-            let len = eSmp - sSmp;
-            if (len <= 0) continue;
-
-            let nBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate);
-            for(let c=0; c<audioBuf.numberOfChannels; c++) {
-                nBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp));
-            }
-            let wav = encodeWAV(nBuf);
-            sliceBlobs.push({ name: `${folderName}slice_${i+1}.wav`, data: wav });
-        }
-
+        if (!audioBuf || sliceMarkers.length === 0) { alert("No slice points defined."); return; } let timestamp = Date.now(); let folderName = `AZ9000_Slices_${timestamp}/`; let sortedSlices = [0, ...sliceMarkers.sort((a,b)=>a-b), audioBuf.duration]; let sliceBlobs = [];
+        for (let i = 0; i < sortedSlices.length - 1; i++) { let sSmp = Math.floor(sortedSlices[i] * audioBuf.sampleRate); let eSmp = Math.floor(sortedSlices[i+1] * audioBuf.sampleRate); let len = eSmp - sSmp; if (len <= 0) continue; let nBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate); for(let c=0; c<audioBuf.numberOfChannels; c++) { nBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); } let wav = encodeWAV(nBuf); sliceBlobs.push({ name: `${folderName}slice_${i+1}.wav`, data: wav }); }
         let zipParts = [], centralDirectory = [], offset = 0;
-
         for (let slice of sliceBlobs) {
-            let encName = new TextEncoder().encode(slice.name);
-            let data = slice.data, crc = 0;
-
-            let header = new Uint8Array(30 + encName.length);
-            let view = new DataView(header.buffer);
-            view.setUint32(0, 0x04034b50, true); view.setUint16(4, 10, true);
-            view.setUint16(6, 0, true); view.setUint16(8, 0, true);
-            view.setUint16(10, 0, true); view.setUint16(12, 0, true);
-            view.setUint32(14, crc, true); view.setUint32(18, data.byteLength, true);
-            view.setUint32(22, data.byteLength, true); view.setUint16(26, encName.length, true);
-            view.setUint16(28, 0, true); header.set(encName, 30);
-            zipParts.push(header); zipParts.push(data);
-
-            let cdHeader = new Uint8Array(46 + encName.length);
-            let cdView = new DataView(cdHeader.buffer);
-            cdView.setUint32(0, 0x02014b50, true); cdView.setUint16(4, 20, true);
-            cdView.setUint16(6, 10, true); cdView.setUint16(8, 0, true);
-            cdView.setUint16(10, 0, true); cdView.setUint16(12, 0, true);
-            cdView.setUint16(14, 0, true); cdView.setUint32(16, crc, true);
-            cdView.setUint32(20, data.byteLength, true); cdView.setUint32(24, data.byteLength, true);
-            cdView.setUint16(28, encName.length, true); cdView.setUint16(30, 0, true);
-            cdView.setUint16(32, 0, true); cdView.setUint16(34, 0, true);
-            cdView.setUint16(36, 0, true); cdView.setUint32(38, 0, true);
-            cdView.setUint32(42, offset, true); cdHeader.set(encName, 46);
-            centralDirectory.push(cdHeader);
-            offset += header.byteLength + data.byteLength;
+            let encName = new TextEncoder().encode(slice.name); let data = slice.data, crc = 0; let header = new Uint8Array(30 + encName.length); let view = new DataView(header.buffer); view.setUint32(0, 0x04034b50, true); view.setUint16(4, 10, true); view.setUint16(6, 0, true); view.setUint16(8, 0, true); view.setUint16(10, 0, true); view.setUint16(12, 0, true); view.setUint32(14, crc, true); view.setUint32(18, data.byteLength, true); view.setUint32(22, data.byteLength, true); view.setUint16(26, encName.length, true); view.setUint16(28, 0, true); header.set(encName, 30); zipParts.push(header); zipParts.push(data);
+            let cdHeader = new Uint8Array(46 + encName.length); let cdView = new DataView(cdHeader.buffer); cdView.setUint32(0, 0x02014b50, true); cdView.setUint16(4, 20, true); cdView.setUint16(6, 10, true); cdView.setUint16(8, 0, true); cdView.setUint16(10, 0, true); cdView.setUint16(12, 0, true); cdView.setUint16(14, 0, true); cdView.setUint32(16, crc, true); cdView.setUint32(20, data.byteLength, true); cdView.setUint32(24, data.byteLength, true); cdView.setUint16(28, encName.length, true); cdView.setUint16(30, 0, true); cdView.setUint16(32, 0, true); cdView.setUint16(34, 0, true); cdView.setUint16(36, 0, true); cdView.setUint32(38, 0, true); cdView.setUint32(42, offset, true); cdHeader.set(encName, 46); centralDirectory.push(cdHeader); offset += header.byteLength + data.byteLength;
         }
-
-        let cdSize = centralDirectory.reduce((acc, part) => acc + part.byteLength, 0);
-        let eocd = new Uint8Array(22);
-        let eocdView = new DataView(eocd.buffer);
-        eocdView.setUint32(0, 0x06054b50, true); eocdView.setUint16(4, 0, true);
-        eocdView.setUint16(6, 0, true); eocdView.setUint16(8, sliceBlobs.length, true);
-        eocdView.setUint16(10, sliceBlobs.length, true); eocdView.setUint32(12, cdSize, true);
-        eocdView.setUint32(16, offset, true); eocdView.setUint16(20, 0, true);
-
-        let finalZip = [...zipParts, ...centralDirectory, eocd];
-        let zipBlob = new Blob(finalZip, { type: 'application/zip' });
-        
-        let a = document.createElement('a');
-        a.href = URL.createObjectURL(zipBlob);
-        a.download = `AZ9000_Slices_${timestamp}.zip`;
-        a.click();
-        status.textContent = "SLICES EXPORTED";
+        let cdSize = centralDirectory.reduce((acc, part) => acc + part.byteLength, 0); let eocd = new Uint8Array(22); let eocdView = new DataView(eocd.buffer); eocdView.setUint32(0, 0x06054b50, true); eocdView.setUint16(4, 0, true); eocdView.setUint16(6, 0, true); eocdView.setUint16(8, sliceBlobs.length, true); eocdView.setUint16(10, sliceBlobs.length, true); eocdView.setUint32(12, cdSize, true); eocdView.setUint32(16, offset, true); eocdView.setUint16(20, 0, true);
+        let finalZip = [...zipParts, ...centralDirectory, eocd]; let zipBlob = new Blob(finalZip, { type: 'application/zip' }); let a = document.createElement('a'); a.href = URL.createObjectURL(zipBlob); a.download = `AZ9000_Slices_${timestamp}.zip`; a.click(); status.textContent = "SLICES EXPORTED";
     }
 
-    input.onchange = handleFile;
-    window.onload = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; draw(); };
-    window.onresize = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; draw(currentPlayTime); };
+    input.onchange = handleFile; window.onload = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; draw(); }; window.onresize = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; draw(currentPlayTime); };
 </script>
 </body>
 </html>
