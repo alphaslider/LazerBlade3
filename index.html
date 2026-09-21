@@ -1,67 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AZ-9000 // True Parametric EQ + Spectral Fix</title>
+    <style>
+        @font-face { font-family: 'DATA'; src: url('data.ttf') format('truetype'), local('Courier New'), monospace; font-display: swap; }
+        :root {
+             --chassis-dark: #0f0f0f;
+             --panel-bg: #181818;
+             --text-main: #a3a3a3;
+             --border-inset: #050505;
+            --border-outset: #2d2d2d;
+            --accent-color: #00e5ff;
+             --accent-dim: rgba(0, 229, 255, 0.1);
+        }
+        
+        body {
+            font-family: 'DATA', monospace; background-color: var(--chassis-dark); color: var(--text-main);
+            padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0;
+            user-select: none; -webkit-user-select: none;
+        }
+        
+        .container {
+             width: 98vw; max-width: 1200px;
+             background-color: var(--panel-bg);
+             border: 2px solid var(--border-inset); border-top: 2px solid var(--border-outset); border-left: 2px solid var(--border-outset);
+            padding: 18px; box-shadow: 10px 10px 30px rgba(0,0,0,0.9); position: relative;
+        }
+        .container::before, .container::after, .container-bottom-screws::before, .container-bottom-screws::after {
+            content: ''; position: absolute; width: 12px; height: 12px; border-radius: 50%;
+             background: linear-gradient(135deg, #333, #000); border: 1px solid #000; box-shadow: inset 0 0 2px #666;
+        }
+        .container::before { top: 8px; left: 8px; } .container::after { top: 8px; right: 8px; }
+        .container-bottom-screws::before { bottom: 8px; left: 8px; } .container-bottom-screws::after { bottom: 8px; right: 8px; }
+        
+        .menu-bar {
+            display: flex; gap: 20px; background: #141414; padding: 8px 15px;
+             border: 1px solid #000; border-bottom: 1px solid #222; font-size: 13px; margin-bottom: 12px; align-items: center; position: relative;
+        }
+        .menu-item { cursor: pointer; position: relative; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px; }
+        .menu-item:hover { color: var(--accent-color); }
+        
+        .dropdown {
+            opacity: 0; visibility: hidden; transform: translateY(-10px);
+            position: absolute; top: 100%; left: 0; background: #141414;
+            border: 1px solid var(--accent-color); min-width: 200px; z-index: 100; box-shadow: 5px 5px 15px rgba(0,0,0,0.9);
+            transition: all 0.15s cubic-bezier(0.2, 0, 0, 1);
+        }
+        .menu-item.active .dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
+        
+        .dropdown-item { padding: 12px 15px; font-size: 12px; color: var(--text-main); cursor: pointer; text-transform: uppercase; border-bottom: 1px solid #0a0a0a; }
+        .dropdown-item:hover { background: #1c1c1c; color: var(--accent-color); }
+        .dropdown-item:disabled { opacity: 0.3; cursor: not-allowed; color: #555; }
+        
+        .toolbar { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; align-items: center; background: #141414; padding: 12px; border: 1px solid #000; box-shadow: inset 0 0 10px #000; }
+        
+        .time-display {
+            font-family: 'DATA', monospace; background: #050505; border: 2px solid #000;
+            color: var(--accent-color); padding: 8px 15px; font-size: 20px; letter-spacing: 3px; box-shadow: inset 0 0 10px var(--accent-dim); text-shadow: 0 0 5px var(--accent-color);
+        }
+        .bpm-control {
+            display: none; align-items: center; gap: 5px; font-family: 'DATA', monospace;
+            color: var(--accent-color); background: #050505; border: 2px solid #000;
+            padding: 8px 10px; box-shadow: inset 0 0 10px var(--accent-dim);
+        }
+        .bpm-control.active { display: flex; }
+        .bpm-control input {
+            background: transparent; border: none; color: var(--accent-color); font-family: 'DATA', monospace;
+            font-size: 18px; width: 45px; outline: none; text-shadow: 0 0 5px var(--accent-color); text-align: right;
+        }
+        .bpm-control input::-webkit-outer-spin-button, .bpm-control input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        .step-btn {
+            background: #1f1f1f; border: 1px solid #000; border-top: 1px solid #3c3c3c; border-left: 1px solid #2a2a2a;
+            color: var(--text-main); width: 22px; height: 14px; display: flex; justify-content: center; align-items: center;
+             cursor: pointer; box-shadow: 1px 1px 3px rgba(0,0,0,0.8); border-radius: 2px;
+        }
+        .step-btn svg { width: 8px; height: 8px; fill: currentColor; pointer-events: none; }
+        .step-btn:hover { color: var(--accent-color); background: #242424; }
+        .step-btn:active { border-top: 1px solid #000; border-left: 1px solid #000; background: #151515; color: var(--accent-color); box-shadow: inset 1px 1px 2px rgba(0,0,0,0.8); }
+        
+        .transport-recess {
+            display: flex; gap: 8px; background: #080808; padding: 8px;
+            border-top: 2px solid #000; border-left: 2px solid #000; border-bottom: 1px solid #2a2a2a; border-right: 1px solid #2a2a2a;
+            box-shadow: inset 4px 4px 15px rgba(0,0,0,0.9), inset -1px -1px 3px rgba(0,0,0,0.5); border-radius: 4px;
+        }
+        .rubber-btn {
+            font-family: 'DATA', monospace; background: #1f1f1f; color: var(--text-main); width: 44px; height: 44px;
+            border: 1px solid #000; border-top: 1px solid #3c3c3c; border-left: 1px solid #2a2a2a; border-radius: 4px; font-size: 18px;
+             cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 2px 2px 5px rgba(0,0,0,0.7), inset 0 0 4px rgba(0,0,0,0.4); transition: all 0.05s;
+        }
+        .rubber-btn svg { fill: currentColor; width: 16px; height: 16px; pointer-events: none; }
+        .rubber-btn:hover:not(:disabled) { color: var(--accent-color); text-shadow: 0 0 8px var(--accent-dim); background: #242424; }
+        .rubber-btn:active:not(:disabled) { border-top: 1px solid #000; border-left: 1px solid #000; box-shadow: inset 3px 3px 8px rgba(0,0,0,0.9); color: var(--accent-color); background-color: #151515; transform: translateY(2px); }
+        .rubber-btn:disabled { opacity: 0.2; cursor: not-allowed; border-top: 1px solid #111; box-shadow: none; }
+        
+        .rubber-btn.recording-active { color: #ff0055 !important; text-shadow: 0 0 8px rgba(255, 0, 85, 0.4) !important; animation: pulse-record 1s infinite alternate; }
+        @keyframes pulse-record { from { box-shadow: inset 0 0 4px rgba(255,0,85,0.2); background-color: #1a050a; } to { box-shadow: inset 0 0 15px rgba(255,0,85,0.6); background-color: #240a12; } }
+        
+        button.text-btn {
+            font-family: 'DATA', monospace; background-color: #1f1f1f; color: var(--text-main); border: 1px solid #000; border-top: 1px solid #333; border-left: 1px solid #333;
+            padding: 8px 12px; font-size: 13px; cursor: pointer; text-transform: uppercase; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+        }
+        button.text-btn:hover:not(:disabled) { background-color: #262626; color: var(--accent-color); }
+        button.text-btn:active:not(:disabled) { box-shadow: inset 2px 2px 5px rgba(0,0,0,0.8); color: var(--accent-color); background-color: #111; }
+        
+        .chop-controls { display: none; align-items: center; gap: 15px; background: #080808; border: 1px solid #000; padding: 0 15px; font-size: 12px; height: 44px; box-shadow: inset 0 0 5px #000; }
+        .chop-controls.active { display: flex; }
+        input[type="checkbox"] { accent-color: var(--accent-color); transform: scale(1.2); cursor: pointer; background: #000; border: 1px solid var(--accent-color); }
+        
+        .info-panel { background: #080808; padding: 10px 15px; border: 2px solid #000; box-shadow: inset 0 0 8px #000; margin-bottom: 12px; font-size: 12px; display: flex; justify-content: space-between; color: #777; }
+        .info-panel span { color: var(--accent-color); text-shadow: 0 0 3px var(--accent-dim); }
+        
+        .waveform-wrapper {
+            width: 100%; position: relative;
+            border: 2px solid #000; border-bottom: 1px solid #222; border-right: 1px solid #222;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9); background-color: #050505;
+            display: flex; flex-direction: column;
+        }
+        #waveformCanvas { width: 100%; height: 364px; cursor: crosshair; touch-action: none; display: block; }
+        
+        .scroll-track {
+            width: 100%; height: 16px; background: #080808; border-top: 2px solid #000;
+             position: relative; box-sizing: border-box; box-shadow: inset 0 0 8px rgba(0,0,0,1);
+        }
+        .scroll-thumb {
+            position: absolute; top: 1px; bottom: 1px; background: #222;
+            border: 1px solid #000; border-top: 1px solid #444; border-left: 1px solid #444;
+            border-radius: 2px; cursor: pointer; box-sizing: border-box;
+            background-image: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.3) 2px, rgba(0,0,0,0.3) 4px);
+        }
+        .scroll-thumb:hover { background: #2a2a2a; }
+        .scroll-thumb:active { background: #1a1a1a; border-top: 1px solid #000; border-left: 1px solid #000; box-shadow: inset 2px 2px 4px #000; }
+        
+        .vertical-zoom-controls {
+            position: absolute; bottom: 50px; left: 10px; display: flex; flex-direction: column; gap: 4px;
+            background: rgba(8, 8, 8, 0.85); padding: 5px; border: 1px solid #222; border-radius: 4px;
+            z-index: 50; box-shadow: 2px 2px 5px rgba(0,0,0,0.8);
+        }
+        .vertical-zoom-controls .step-btn { width: 24px; height: 24px; font-size: 16px; font-weight: bold; }
+        
+        .region-vol-wheel {
+            position: absolute; width: 24px; height: 24px; background: #181818;
+            border: 1px solid #000; border-radius: 50%; cursor: ns-resize;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.8), inset 0 0 3px rgba(0,0,0,0.5);
+            z-index: 100; display: none; justify-content: center; align-items: flex-start;
+            padding-top: 2px; box-sizing: border-box; transform-origin: center;
+        }
+        .region-vol-wheel::before { content: ''; position: absolute; inset: 1px; border-radius: 50%; border: 1px solid var(--accent-color); opacity: 0.5; }
+        .region-vol-wheel::after { content: ''; width: 2px; height: 6px; background: var(--accent-color); border-radius: 1px; z-index: 2; }
+        .region-vol-wheel:hover { background: #222; }
+        
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-box { background: var(--panel-bg); border: 2px solid var(--border-inset); border-top: 2px solid var(--border-outset); border-left: 2px solid var(--border-outset); padding: 20px; width: 340px; display: flex; flex-direction: column; gap: 15px; box-shadow: 10px 10px 30px #000; font-size: 12px; max-height: 90vh; overflow-y: auto; transition: width 0.3s cubic-bezier(0.2,0,0,1), max-width 0.3s; }
+        .modal-title { color: var(--accent-color); font-size: 16px; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 5px; }
+        .slider-container { display: flex; flex-direction: column; gap: 6px; align-items: center; margin-bottom: 8px; width: 100%; }
+        .slider-row { display: flex; width: 100%; justify-content: space-between; align-items: center; }
+        .slider-row label { flex: 1; color: var(--text-main); font-size: 10px; }
+        .slider-row .val { color: var(--accent-color); font-size: 12px; width: 45px; text-align: right; }
+        input[type=range] { width: 100%; accent-color: var(--accent-color); cursor: pointer; }
+        input[type=number].modal-input { background: #111; color: var(--accent-color); border: 1px solid #333; padding: 8px; width: 100%; font-family: 'DATA', monospace; text-align: center; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: space-between; margin-top: 10px; }
+        select { background: #111; color: var(--accent-color); border: 1px solid #333; padding: 8px; font-family: 'DATA', monospace; width: 100%; outline: none;}
 
-<!DOCTYPE html><html lang="en"><head>    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">    <title>AZ-9000 // Replace Edition + Trim + Scroll + BPM Sense</title>    <style>        @font-face { font-family: 'DATA'; src: url('data.ttf') format('truetype'), local('Courier New'), monospace; font-display: swap; }        :root {             --chassis-dark: #111111;             --panel-bg: #1a1a1a;             --text-main: #a3a3a3;             --border-inset: #050505;            --border-outset: #2d2d2d;            --accent-color: #00e5ff;             --accent-dim: rgba(0, 229, 255, 0.1);        }                body {            font-family: 'DATA', monospace; background-color: var(--chassis-dark); color: var(--text-main);            background-image: radial-gradient(var(--border-outset) 1px, transparent 0);            background-size: 6px 6px;            padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0;            user-select: none;        }                .container {             width: 98vw; max-width: 1200px;             background-color: var(--panel-bg);             border: 2px solid var(--border-inset); border-top: 2px solid var(--border-outset); border-left: 2px solid var(--border-outset);            padding: 18px; box-shadow: 10px 10px 30px rgba(0,0,0,0.9); position: relative;        }
-        .container::before, .container::after, .container-bottom-screws::before, .container-bottom-screws::after {            content: ''; position: absolute; width: 12px; height: 12px; border-radius: 50%;             background: linear-gradient(135deg, #333, #000); border: 1px solid #000; box-shadow: inset 0 0 2px #666;        }        .container::before { top: 8px; left: 8px; } .container::after { top: 8px; right: 8px; }        .container-bottom-screws::before { bottom: 8px; left: 8px; } .container-bottom-screws::after { bottom: 8px; right: 8px; }
-        .menu-bar {            display: flex; gap: 20px; background: #141414; padding: 8px 15px;             border: 1px solid #000; border-bottom: 1px solid #222; font-size: 13px; margin-bottom: 12px; align-items: center; position: relative;        }        .menu-item { cursor: pointer; position: relative; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px; }        .menu-item:hover { color: var(--accent-color); }                /* Animated Dropdown Logic */        .dropdown {            opacity: 0; visibility: hidden; transform: translateY(-10px);            position: absolute; top: 100%; left: 0; background: #141414;            border: 1px solid var(--accent-color); min-width: 200px; z-index: 100; box-shadow: 5px 5px 15px rgba(0,0,0,0.9);            transition: all 0.15s cubic-bezier(0.2, 0, 0, 1);        }        .menu-item.active .dropdown { opacity: 1; visibility: visible; transform: translateY(0); }                .dropdown-item { padding: 12px 15px; font-size: 12px; color: var(--text-main); cursor: pointer; text-transform: uppercase; border-bottom: 1px solid #0a0a0a; }        .dropdown-item:hover { background: #1c1c1c; color: var(--accent-color); }        .dropdown-item:disabled { opacity: 0.3; cursor: not-allowed; color: #555; }
-        .toolbar { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; align-items: center; background: #141414; padding: 12px; border: 1px solid #000; box-shadow: inset 0 0 10px #000; }                .time-display {            font-family: 'DATA', monospace; background: #050505; border: 2px solid #000;            color: var(--accent-color); padding: 8px 15px; font-size: 20px; letter-spacing: 3px; box-shadow: inset 0 0 10px var(--accent-dim); text-shadow: 0 0 5px var(--accent-color);        }
-        .bpm-control {            display: none; align-items: center; gap: 5px; font-family: 'DATA', monospace;            color: var(--accent-color); background: #050505; border: 2px solid #000;            padding: 8px 10px; box-shadow: inset 0 0 10px var(--accent-dim);        }        .bpm-control.active { display: flex; }        .bpm-control input {            background: transparent; border: none; color: var(--accent-color); font-family: 'DATA', monospace;            font-size: 18px; width: 45px; outline: none; text-shadow: 0 0 5px var(--accent-color); text-align: right;        }        .bpm-control input::-webkit-outer-spin-button, .bpm-control input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .step-btn {            background: #1f1f1f; border: 1px solid #000; border-top: 1px solid #3c3c3c; border-left: 1px solid #2a2a2a;            color: var(--text-main); width: 22px; height: 14px; display: flex; justify-content: center; align-items: center;             cursor: pointer; box-shadow: 1px 1px 3px rgba(0,0,0,0.8); border-radius: 2px;        }        .step-btn svg { width: 8px; height: 8px; fill: currentColor; pointer-events: none; }        .step-btn:hover { color: var(--accent-color); background: #242424; }        .step-btn:active { border-top: 1px solid #000; border-left: 1px solid #000; background: #151515; color: var(--accent-color); box-shadow: inset 1px 1px 2px rgba(0,0,0,0.8); }
-        .transport-recess {            display: flex; gap: 8px; background: #080808; padding: 8px;            border-top: 2px solid #000; border-left: 2px solid #000; border-bottom: 1px solid #2a2a2a; border-right: 1px solid #2a2a2a;            box-shadow: inset 4px 4px 15px rgba(0,0,0,0.9), inset -1px -1px 3px rgba(0,0,0,0.5); border-radius: 4px;        }
-        .rubber-btn {            font-family: 'DATA', monospace; background: #1f1f1f; color: var(--text-main); width: 44px; height: 44px;            border: 1px solid #000; border-top: 1px solid #3c3c3c; border-left: 1px solid #2a2a2a; border-radius: 4px; font-size: 18px;             cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 2px 2px 5px rgba(0,0,0,0.7), inset 0 0 4px rgba(0,0,0,0.4); transition: all 0.05s;        }        .rubber-btn svg { fill: currentColor; width: 16px; height: 16px; pointer-events: none; }        .rubber-btn:hover:not(:disabled) { color: var(--accent-color); text-shadow: 0 0 8px var(--accent-dim); background: #242424; }        .rubber-btn:active:not(:disabled) { border-top: 1px solid #000; border-left: 1px solid #000; box-shadow: inset 3px 3px 8px rgba(0,0,0,0.9); color: var(--accent-color); background-color: #151515; transform: translateY(2px); }        .rubber-btn:disabled { opacity: 0.2; cursor: not-allowed; border-top: 1px solid #111; box-shadow: none; }                .rubber-btn.recording-active { color: #ff0055 !important; text-shadow: 0 0 8px rgba(255, 0, 85, 0.4) !important; animation: pulse-record 1s infinite alternate; }        @keyframes pulse-record { from { box-shadow: inset 0 0 4px rgba(255,0,85,0.2); background-color: #1a050a; } to { box-shadow: inset 0 0 15px rgba(255,0,85,0.6); background-color: #240a12; } }
-        button.text-btn {            font-family: 'DATA', monospace; background-color: #1f1f1f; color: var(--text-main); border: 1px solid #000; border-top: 1px solid #333; border-left: 1px solid #333;            padding: 8px 12px; font-size: 13px; cursor: pointer; text-transform: uppercase; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);        }        button.text-btn:hover:not(:disabled) { background-color: #262626; color: var(--accent-color); }        button.text-btn:active:not(:disabled) { box-shadow: inset 2px 2px 5px rgba(0,0,0,0.8); color: var(--accent-color); background-color: #111; }
-        .chop-controls { display: none; align-items: center; gap: 15px; background: #080808; border: 1px solid #000; padding: 0 15px; font-size: 12px; height: 44px; box-shadow: inset 0 0 5px #000; }        .chop-controls.active { display: flex; }        input[type="checkbox"] { accent-color: var(--accent-color); transform: scale(1.2); cursor: pointer; background: #000; border: 1px solid var(--accent-color); }
-        .info-panel { background: #080808; padding: 10px 15px; border: 2px solid #000; box-shadow: inset 0 0 8px #000; margin-bottom: 12px; font-size: 12px; display: flex; justify-content: space-between; color: #777; }        .info-panel span { color: var(--accent-color); text-shadow: 0 0 3px var(--accent-dim); }
-        /* Unified Waveform Wrapper */        .waveform-wrapper {            width: 100%; position: relative;            border: 2px solid #000; border-bottom: 1px solid #222; border-right: 1px solid #222;            box-shadow: inset 0 0 20px rgba(0,0,0,0.9); background-color: #050505;            display: flex; flex-direction: column;        }
-        #waveformCanvas { width: 100%; height: 364px; cursor: crosshair; touch-action: none; display: block; }        #loadSampleInput { display: none; }
-        /* Horizontal Scrollbar Track & Thumb */        .scroll-track {            width: 100%; height: 16px; background: #080808; border-top: 2px solid #000;             position: relative; box-sizing: border-box; box-shadow: inset 0 0 8px rgba(0,0,0,1);        }        .scroll-thumb {            position: absolute; top: 1px; bottom: 1px; background: #222;            border: 1px solid #000; border-top: 1px solid #444; border-left: 1px solid #444;            border-radius: 2px; cursor: pointer; box-sizing: border-box;            background-image: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.3) 2px, rgba(0,0,0,0.3) 4px);        }        .scroll-thumb:hover { background: #2a2a2a; }        .scroll-thumb:active { background: #1a1a1a; border-top: 1px solid #000; border-left: 1px solid #000; box-shadow: inset 2px 2px 4px #000; }
-        /* Vertical Zoom Controls */        .vertical-zoom-controls {            position: absolute; bottom: 50px; left: 10px; display: flex; flex-direction: column; gap: 4px;            background: rgba(8, 8, 8, 0.85); padding: 5px; border: 1px solid #222; border-radius: 4px;            z-index: 50; box-shadow: 2px 2px 5px rgba(0,0,0,0.8);        }        .vertical-zoom-controls .step-btn { width: 24px; height: 24px; font-size: 16px; font-weight: bold; }
-        /* Real-Time Trim Wheel */        .region-vol-wheel {            position: absolute; width: 24px; height: 24px; background: #181818;            border: 1px solid #000; border-radius: 50%; cursor: ns-resize;            box-shadow: 2px 2px 5px rgba(0,0,0,0.8), inset 0 0 3px rgba(0,0,0,0.5);            z-index: 100; display: none; justify-content: center; align-items: flex-start;            padding-top: 2px; box-sizing: border-box; transform-origin: center;        }        .region-vol-wheel::before {            content: ''; position: absolute; inset: 1px; border-radius: 50%;            border: 1px solid var(--accent-color); opacity: 0.5;        }        .region-vol-wheel::after {            content: ''; width: 2px; height: 6px; background: var(--accent-color); border-radius: 1px; z-index: 2;        }        .region-vol-wheel:hover { background: #222; }                .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }        .modal-box { background: var(--panel-bg); border: 2px solid var(--border-inset); border-top: 2px solid var(--border-outset); border-left: 2px solid var(--border-outset); padding: 20px; width: 320px; display: flex; flex-direction: column; gap: 15px; box-shadow: 10px 10px 30px #000; font-size: 12px; }        .modal-title { color: var(--accent-color); font-size: 16px; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 5px; }        .slider-container { display: flex; flex-direction: column; gap: 10px; align-items: center; }        input[type=range] { width: 100%; accent-color: var(--accent-color); cursor: pointer; }        .modal-buttons { display: flex; gap: 10px; justify-content: space-between; margin-top: 10px; }        select { background: #111; color: var(--accent-color); border: 1px solid #333; padding: 8px; font-family: 'DATA', monospace; width: 100%; outline: none;}    </style></head><body>
-<div class="container">    <div class="container-bottom-screws"></div>        <div class="menu-bar">        <div class="menu-item" onclick="toggleMenu(event, 'fileMenu')">File            <div id="fileMenu" class="dropdown">                <div class="dropdown-item" onclick="closeMenus(); document.getElementById('loadSampleInput').click()">Open Audio...</div>                <div class="dropdown-item" id="menuExport" onclick="closeMenus(); exportWav()" disabled>Export Selection</div>                <div class="dropdown-item" id="menuExportSlices" onclick="closeMenus(); exportSlices()" disabled>Export Slices (ZIP)</div>            </div>        </div>        <div class="menu-item" onclick="toggleMenu(event, 'editMenu')">Edit            <div id="editMenu" class="dropdown">                <div class="dropdown-item" id="menuUndo" onclick="closeMenus(); undo()" disabled>Undo (Ctrl+Z)</div>                <div class="dropdown-item" id="menuTrim" onclick="closeMenus(); trimSelection()" disabled>Trim Selection</div>                <div class="dropdown-item" id="menuCut" onclick="closeMenus(); cutSelection()" disabled>Cut (Ctrl+X)</div>                <div class="dropdown-item" id="menuCopy" onclick="closeMenus(); copySelection()" disabled>Copy (Ctrl+C)</div>                <div class="dropdown-item" id="menuPaste" onclick="closeMenus(); pasteSelection()" disabled>Paste / Insert (Ctrl+V)</div>                <div class="dropdown-item" id="menuMixPaste" onclick="closeMenus(); mixPasteSelection()" disabled>Mix Paste</div>                <div class="dropdown-item" id="menuSilence" onclick="closeMenus(); silenceSelection()" disabled>Silence Region</div>                <div class="dropdown-item" id="menuAmplify" onclick="closeMenus(); openAmplifyModal()" disabled>Amplify Region...</div>                <div class="dropdown-item" id="menuFX" onclick="closeMenus(); openFXModal()" disabled>FX Processor...</div>                <div class="dropdown-item" id="menuFadeIn" onclick="closeMenus(); fadeInSelection()" disabled>Fade In Region</div>                <div class="dropdown-item" id="menuFadeOut" onclick="closeMenus(); fadeOutSelection()" disabled>Fade Out Region</div>            </div>        </div>        <div class="menu-item" onclick="toggleMenu(event, 'selectMenu')">Select            <div id="selectMenu" class="dropdown">                <div class="dropdown-item" id="menuZeroCross" onclick="closeMenus(); toggleZeroCross()">Zero Cross: ON</div>                <div class="dropdown-item" style="display:flex; justify-content:space-between; align-items:center;" onclick="keepMenuOpen(event)">                    Theme Color <input type="color" id="themeColorPicker" value="#00e5ff" style="background:none; border:none; width:26px; height:26px; cursor:pointer; padding:0;">                </div>            </div>        </div>        <div class="menu-item" onclick="toggleMenu(event, 'viewMenu')">View            <div id="viewMenu" class="dropdown">                <div class="dropdown-item" onclick="closeMenus(); zoomIn()">Zoom In (+)</div>                <div class="dropdown-item" onclick="closeMenus(); zoomOut()">Zoom Out (-)</div>                <div class="dropdown-item" id="menuPeakSep" onclick="closeMenus(); togglePeakSeparators()">Peak Separators: OFF</div>                <div class="dropdown-item" id="menuTimeFormat" onclick="closeMenus(); toggleTimeFormat()">Time Format: SEC</div>            </div>        </div>    </div>
-    <div class="toolbar">        <div class="time-display" id="timeDisplay">00:00:000</div>                <div class="bpm-control" id="bpmControl">            <input type="number" id="bpmInput" value="120" min="1" max="999"> BPM            <div style="display:flex; flex-direction:column; gap:3px; margin-left:6px;">                <button class="step-btn" id="btnBpmUp"><svg viewBox="0 0 24 24"><polygon points="12,6 20,18 4,18"></polygon></svg></button>                <button class="step-btn" id="btnBpmDown"><svg viewBox="0 0 24 24"><polygon points="12,18 4,6 20,6"></polygon></svg></button>            </div>        </div>
-        <div class="transport-recess">            <button id="btnRecord" class="rubber-btn" title="Record Audio [R]">                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"></circle></svg>            </button>            <button id="btnPlay" class="rubber-btn" title="Play [Space]" disabled>                <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"></polygon></svg>            </button>            <button id="btnStop" class="rubber-btn" title="Stop [Space]" disabled>                <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16"></rect></svg>            </button>            <button id="btnLoop" class="rubber-btn" title="Loop" disabled>                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"/></svg>            </button>            <button id="btnChopMode" class="rubber-btn" title="Chop Mode" disabled>                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>            </button>        </div>                <div class="chop-controls" id="chopControlsPanel">            <label style="display:flex; align-items:center; cursor:pointer; color: var(--text-main);"><input type="checkbox" id="triggerModeCheck" style="margin-right:8px;"> TRIGGER</label>            <label style="display:flex; align-items:center; cursor:pointer; color: var(--text-main);"><input type="checkbox" id="deleteChopCheck" style="margin-right:8px;"> DEL CHOP</label>        </div>        <input type="file" id="loadSampleInput" accept="audio/*">    </div>
-    <div class="info-panel">        <div>STATUS: <span id="status">AWAITING AUDIO</span></div>        <div>WINDOW: <span id="loopRangeDisplay">0.000S &gt;&gt; 0.000S</span> | SEL BPM: <span id="selBpmDisp">--</span></div>        <div>ZOOM: <span id="zoomMag">1X</span> | AMP: <span id="ampMag">1.0X</span></div>    </div>        <!-- Unified Waveform & Scrollbar Container -->    <div class="waveform-wrapper">        <canvas id="waveformCanvas"></canvas>        <div id="scrollTrack" class="scroll-track">            <div id="scrollThumb" class="scroll-thumb"></div>        </div>                <div class="vertical-zoom-controls" title="Vertical Zoom">            <button class="step-btn" onclick="adjustVerticalZoom(0.2)">+</button>            <button class="step-btn" onclick="adjustVerticalZoom(-0.2)">-</button>        </div>
-        <div id="regionVolWheel" class="region-vol-wheel" title="Drag Up/Down to Adjust Selection Gain"></div>    </div>
+        #eqCanvas { width: 100%; max-width: 1200px; height: 350px; border: 1px solid #333; cursor: crosshair; background: #000; box-shadow: inset 0 0 20px #000; display: block; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="container-bottom-screws"></div>
+    
+    <div class="menu-bar">
+        <div class="menu-item" onclick="toggleMenu(event, 'fileMenu')">File
+            <div id="fileMenu" class="dropdown">
+                <div class="dropdown-item" onclick="openAudioTrigger(event)">Open Audio...</div>
+                <div class="dropdown-item" onclick="openBitmapTrigger(event)">Import Bitmap to Synth...</div>
+                <div class="dropdown-item" id="menuExport" onclick="closeMenus(); exportWav()" disabled>Export Selection</div>
+                <div class="dropdown-item" id="menuExportSlices" onclick="closeMenus(); exportSlices()" disabled>Export Slices (ZIP)</div>
+            </div>
+        </div>
+        <div class="menu-item" onclick="toggleMenu(event, 'editMenu')">Edit
+            <div id="editMenu" class="dropdown">
+                <div class="dropdown-item" id="menuUndo" onclick="closeMenus(); undo()" disabled>Undo (Ctrl+Z)</div>
+                <div class="dropdown-item" id="menuTrim" onclick="closeMenus(); trimSelection()" disabled>Trim Selection</div>
+                <div class="dropdown-item" id="menuCut" onclick="closeMenus(); cutSelection()" disabled>Cut (Ctrl+X)</div>
+                <div class="dropdown-item" id="menuCopy" onclick="closeMenus(); copySelection()" disabled>Copy (Ctrl+C)</div>
+                <div class="dropdown-item" id="menuPaste" onclick="closeMenus(); pasteSelection()" disabled>Paste / Insert (Ctrl+V)</div>
+                <div class="dropdown-item" id="menuMixPaste" onclick="closeMenus(); mixPasteSelection()" disabled>Mix Paste</div>
+                <div class="dropdown-item" id="menuSilence" onclick="closeMenus(); silenceSelection()" disabled>Silence Region</div>
+                <div class="dropdown-item" id="menuSilenceBand" onclick="closeMenus(); silenceFreqBand()" disabled style="display:none; color:#ff0055;">Silence Freq Band (Spectral)</div>
+                <div class="dropdown-item" id="menuAmplify" onclick="closeMenus(); openAmplifyModal()" disabled>Amplify Region...</div>
+                <div class="dropdown-item" id="menuFX" onclick="closeMenus(); openFXModal()" disabled>FX Processor...</div>
+                <div class="dropdown-item" id="menuFadeIn" onclick="closeMenus(); fadeInSelection()" disabled>Fade In Region</div>
+                <div class="dropdown-item" id="menuFadeOut" onclick="closeMenus(); fadeOutSelection()" disabled>Fade Out Region</div>
+            </div>
+        </div>
+        <div class="menu-item" onclick="toggleMenu(event, 'selectMenu')">Select
+            <div id="selectMenu" class="dropdown">
+                <div class="dropdown-item" id="menuZeroCross" onclick="closeMenus(); toggleZeroCross()">Zero Cross: ON</div>
+                <div class="dropdown-item" style="display:flex; justify-content:space-between; align-items:center;" onclick="keepMenuOpen(event)">
+                    Theme Color <input type="color" id="themeColorPicker" value="#00e5ff" style="background:none; border:none; width:26px; height:26px; cursor:pointer; padding:0;">
+                </div>
+            </div>
+        </div>
+        <div class="menu-item" onclick="toggleMenu(event, 'viewMenu')">View
+            <div id="viewMenu" class="dropdown">
+                <div class="dropdown-item" id="menuSpectralMode" onclick="closeMenus(); toggleSpectralMode()">Spectral Mode: OFF</div>
+                <div class="dropdown-item" onclick="closeMenus(); zoomIn()">Zoom In (+)</div>
+                <div class="dropdown-item" onclick="closeMenus(); zoomOut()">Zoom Out (-)</div>
+                <div class="dropdown-item" id="menuPeakSep" onclick="closeMenus(); togglePeakSeparators()">Peak Separators: OFF</div>
+                <div class="dropdown-item" id="menuTimeFormat" onclick="closeMenus(); toggleTimeFormat()">Time Format: SEC</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <div class="time-display" id="timeDisplay">00:00:000</div>
+        
+        <div class="bpm-control" id="bpmControl">
+            <input type="number" id="bpmInput" value="120" min="1" max="999"> BPM
+            <div style="display:flex; flex-direction:column; gap:3px; margin-left:6px;">
+                <button class="step-btn" id="btnBpmUp"><svg viewBox="0 0 24 24"><polygon points="12,6 20,18 4,18"></polygon></svg></button>
+                <button class="step-btn" id="btnBpmDown"><svg viewBox="0 0 24 24"><polygon points="12,18 4,6 20,6"></polygon></svg></button>
+            </div>
+        </div>
+
+        <div class="transport-recess">
+            <button id="btnRecord" class="rubber-btn" title="Record Audio [R]">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"></circle></svg>
+            </button>
+            <button id="btnPlay" class="rubber-btn" title="Play [Space]" disabled>
+                <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"></polygon></svg>
+            </button>
+            <button id="btnStop" class="rubber-btn" title="Stop [Space]" disabled>
+                <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16"></rect></svg>
+            </button>
+            <button id="btnLoop" class="rubber-btn" title="Loop" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"/></svg>
+            </button>
+            <button id="btnChopMode" class="rubber-btn" title="Chop Mode" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>
+            </button>
+        </div>
+        
+        <div class="chop-controls" id="chopControlsPanel">
+            <label style="display:flex; align-items:center; cursor:pointer; color: var(--text-main);"><input type="checkbox" id="triggerModeCheck" style="margin-right:8px;"> TRIGGER</label>
+            <label style="display:flex; align-items:center; cursor:pointer; color: var(--text-main);"><input type="checkbox" id="deleteChopCheck" style="margin-right:8px;"> DEL CHOP</label>
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div>STATUS: <span id="status">AWAITING AUDIO</span></div>
+        <div>WINDOW: <span id="loopRangeDisplay">0.000S &gt;&gt; 0.000S</span> | SEL BPM: <span id="selBpmDisp">--</span></div>
+        <div>ZOOM: <span id="zoomMag">1X</span> | AMP: <span id="ampMag">1.0X</span></div>
+    </div>
+    
+    <div class="waveform-wrapper">
+        <canvas id="waveformCanvas"></canvas>
+        <div id="scrollTrack" class="scroll-track">
+            <div id="scrollThumb" class="scroll-thumb"></div>
+        </div>
+        
+        <div class="vertical-zoom-controls" title="Vertical Zoom">
+            <button class="step-btn" onclick="adjustVerticalZoom(0.2)">+</button>
+            <button class="step-btn" onclick="adjustVerticalZoom(-0.2)">-</button>
+        </div>
+        <div id="regionVolWheel" class="region-vol-wheel" title="Drag Up/Down to Adjust Selection Gain"></div>
+    </div>
 </div>
-<!-- Modals --><div id="amplifyModal" class="modal-overlay">    <div class="modal-box">        <div class="modal-title">AMPLIFY REGION</div>        <div class="slider-container"><input type="range" id="ampSlider" min="0" max="200" value="100"><div style="color: var(--accent-color); font-size: 16px;" id="ampValueVal">1.00x</div></div>        <div class="modal-buttons"><button class="text-btn" id="btnPreviewAmp" style="flex:1;">PREVIEW</button><button class="text-btn" id="btnApplyAmp" style="flex:1;">APPLY</button><button class="text-btn" onclick="closeAmplifyModal()">CANCEL</button></div>    </div></div><div id="fxModal" class="modal-overlay">    <div class="modal-box">        <div class="modal-title">FX PROCESSOR</div>        <select id="fxTypeSelect"><option value="echo">Echo Chamber (Delay)</option><option value="reverb">Digital Reverb</option><option value="tube">Tube Compressor / Limiter</option></select>        <div class="slider-container"><label style="color:var(--text-main); margin-top:5px;">INTENSITY / WET MIX</label><input type="range" id="fxSlider" min="0" max="100" value="50"><div style="color: var(--accent-color); font-size: 16px;" id="fxValueVal">50%</div></div>        <div class="modal-buttons"><button class="text-btn" id="btnPreviewFX" style="flex:1;">PREVIEW</button><button class="text-btn" id="btnApplyFX" style="flex:1;">APPLY</button><button class="text-btn" onclick="closeFXModal()">CANCEL</button></div>    </div></div>
+
+<input type="file" id="loadSampleInput" accept="audio/*" style="display:none;">
+<input type="file" id="loadBitmapInput" accept="image/png, image/jpeg, image/webp" style="display:none;">
+
+<div id="amplifyModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-title">AMPLIFY REGION</div>
+        <div class="slider-container"><input type="range" id="ampSlider" min="0" max="200" value="100"><div style="color: var(--accent-color); font-size: 16px;" id="ampValueVal">1.00x</div></div>
+        <div class="modal-buttons"><button class="text-btn" id="btnPreviewAmp" style="flex:1;">PREVIEW</button><button class="text-btn" id="btnApplyAmp" style="flex:1;">APPLY</button><button class="text-btn" onclick="closeAmplifyModal()">CANCEL</button></div>
+    </div>
+</div>
+
+<div id="fxModal" class="modal-overlay">
+    <div id="fxModalBox" class="modal-box">
+        <div class="modal-title">FX PROCESSOR</div>
+        <select id="fxTypeSelect">
+            <option value="eq">Parametric EQ (Sweep & Pinch)</option>
+            <option value="compressor">VCA Studio Compressor (Pumping)</option>
+            <option value="echo">Echo Chamber (Delay)</option>
+            <option value="reverb">Digital Reverb</option>
+        </select>
+        
+        <div id="eqCanvasContainer" style="display:none; width: 100%; margin-top: 10px;">
+            <p style="text-align:center; color:#777; margin:0 0 5px 0; font-size: 10px;">DRAG = Sweep Freq/Gain | SCROLL WHEEL = Pinch/Widen Q Factor</p>
+            <canvas id="eqCanvas" width="1024" height="350"></canvas>
+        </div>
+
+        <div id="customIRContainer" style="display:none; width: 100%; margin-top: 5px; text-align: center;">
+            <button class="text-btn" id="btnLoadCustomIR" style="width: 100%;">LOAD CUSTOM IR (.WAV)</button>
+            <input type="file" id="customIRInput" accept="audio/*" style="display:none;">
+        </div>
+
+        <div id="compControlsContainer" style="display:none; width: 100%; margin-top: 10px; background: #111; padding: 10px; border: 1px solid #222; box-sizing: border-box;">
+            <div class="slider-container">
+                <div class="slider-row"><label>DRIVE (PUMP)</label><div class="val" id="compDriveVal">0 dB</div></div>
+                <input type="range" id="compDrive" min="0" max="24" step="0.5" value="0">
+            </div>
+            <div class="slider-container">
+                <div class="slider-row"><label>THRESHOLD</label><div class="val" id="compThreshVal">-24 dB</div></div>
+                <input type="range" id="compThresh" min="-60" max="0" step="0.5" value="-24">
+            </div>
+            <div class="slider-container">
+                <div class="slider-row"><label>RATIO</label><div class="val" id="compRatioVal">4:1</div></div>
+                <input type="range" id="compRatio" min="1" max="20" step="0.5" value="4">
+            </div>
+            <div class="slider-container">
+                <div class="slider-row"><label>ATTACK</label><div class="val" id="compAttackVal">10 ms</div></div>
+                <input type="range" id="compAttack" min="1" max="200" step="1" value="10">
+            </div>
+            <div class="slider-container">
+                <div class="slider-row"><label>RELEASE</label><div class="val" id="compReleaseVal">150 ms</div></div>
+                <input type="range" id="compRelease" min="10" max="1000" step="10" value="150">
+            </div>
+            <div class="slider-container">
+                <div class="slider-row"><label>MAKEUP GAIN</label><div class="val" id="compMakeupVal">0 dB</div></div>
+                <input type="range" id="compMakeup" min="0" max="24" step="0.5" value="0">
+            </div>
+            <p style="text-align:center; color:#555; margin: 10px 0 0 0; font-size:10px;">(Hard knee engaged. Push Drive into Threshold for heavy pumping.)</p>
+        </div>
+
+        <div id="standardMixContainer" class="slider-container" style="margin-top:10px;">
+            <label style="color:var(--text-main); margin-top:5px;">INTENSITY / WET MIX</label>
+            <input type="range" id="fxSlider" min="0" max="100" value="50">
+            <div style="color: var(--accent-color); font-size: 16px;" id="fxValueVal">50%</div>
+        </div>
+        
+        <div class="modal-buttons">
+            <button class="text-btn" id="btnPreviewFX" style="flex:1;">PREVIEW</button>
+            <button class="text-btn" id="btnApplyFX" style="flex:1;">APPLY</button>
+            <button class="text-btn" onclick="closeFXModal()">CANCEL</button>
+        </div>
+    </div>
+</div>
+
+<div id="bitmapModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-title">BITMAP SYNTHESIS</div>
+        <p style="text-align:center; color:#777; margin:0;">Convert image pixels to additive sine waves.</p>
+        <div class="slider-container"><label style="color:var(--text-main);">TARGET DURATION (SECONDS)</label><input type="number" id="bmpDuration" class="modal-input" value="5.0" step="0.5" min="0.5" max="30.0"></div>
+        <div class="modal-buttons"><button class="text-btn" id="btnApplyBitmap" style="flex:1;">GENERATE</button><button class="text-btn" onclick="closeBitmapModal()">CANCEL</button></div>
+    </div>
+</div>
+
 <script>
-    let audioCtx, audioBuf, sourceNode = null, masterGain = null;
+    let audioCtx = null, audioBuf = null, sourceNode = null, masterGain = null;
     let loopStart = 0, loopEnd = 0, currentPlayTime = 0;
     let isPlaying = false, isDragging = false, dragTarget = null;
     let zoomH = 1, scrollPos = 0, ampZoom = 1.0;
     let playbackStartTime = 0, aniFrame = null;
     let isLoopingActive = true;
     let wasPlayingBeforeDrag = false;
-        
-    // Recording state
+    
     let isRecording = false;
     let mediaRecorder = null;
     let recordedChunks = [];
     let mediaStream = null;
     let recordingStartTime = 0;
-    let recordStartOffset = 0; 
+    let recordStartOffset = 0;
     let analyser = null;
     let liveWaveformData = [];
     let recAnimFrame = null;
-        
-    // Scrollbar state
+    
     let isDraggingThumb = false;
     let dragThumbStartX = 0;
     let dragThumbStartScrollPos = 0;
 
-    // Trim Wheel state
     let isDraggingVolWheel = false;
     let volWheelStartY = 0;
     let currentVolGain = 1.0;
     let regionBackup = [];
-        
+    
     let isZeroCross = true;
     let isChopMode = false;
     let isTriggerMode = false;
     let isDeleteChopMode = false;
-    let sliceMarkers = []; 
+    let sliceMarkers = [];
     let draggedSliceIndex = null;
     let activeSliceStart = 0;
 
-    // Unified Drag Variables
+    let isSpectralMode = false;
+    let freqLow = 0;
+    let freqHigh = 22050;
+    let dragStartY = 0;
+    let selectFreqOrigin = 0;
+    let specCanvas = document.createElement('canvas');
+    let specCtx = specCanvas.getContext('2d');
+    let specCacheValid = false;
+    let pendingBitmapImage = null;
+
     let selectOriginTime = 0;
     let dragStartX = 0;
 
@@ -72,8 +408,11 @@
     let isPreviewingAmp = false;
     let isPreviewingFX = false;
     let proceduralIR = null;
+    let customIRBuffer = null;
+    let activeFXChain = null; 
+    let eqAnalyser = null; 
 
-    let currentThemeColor = "#00e5ff"; 
+    let currentThemeColor = "#00e5ff";
     let clipboardData = null;
     let undoStack = [];
     const MAX_UNDO = 10;
@@ -89,8 +428,9 @@
     const ampMagDisp = document.getElementById('ampMag');
     const timeDisplay = document.getElementById('timeDisplay');
     const input = document.getElementById('loadSampleInput');
+    const loadBitmapInput = document.getElementById('loadBitmapInput');
     const regionVolWheel = document.getElementById('regionVolWheel');
-        
+    
     const bpmControl = document.getElementById('bpmControl');
     const bpmInput = document.getElementById('bpmInput');
     const menuTimeFormat = document.getElementById('menuTimeFormat');
@@ -113,6 +453,7 @@
     const menuPaste = document.getElementById('menuPaste');
     const menuMixPaste = document.getElementById('menuMixPaste');
     const menuSilence = document.getElementById('menuSilence');
+    const menuSilenceBand = document.getElementById('menuSilenceBand');
     const menuAmplify = document.getElementById('menuAmplify');
     const menuFX = document.getElementById('menuFX');
     const menuFadeIn = document.getElementById('menuFadeIn');
@@ -120,6 +461,7 @@
     const menuExport = document.getElementById('menuExport');
     const menuExportSlices = document.getElementById('menuExportSlices');
     const menuZeroCross = document.getElementById('menuZeroCross');
+    const menuSpectralMode = document.getElementById('menuSpectralMode');
 
     const amplifyModal = document.getElementById('amplifyModal');
     const ampSlider = document.getElementById('ampSlider');
@@ -128,29 +470,91 @@
     const btnApplyAmp = document.getElementById('btnApplyAmp');
 
     const fxModal = document.getElementById('fxModal');
+    const fxModalBox = document.getElementById('fxModalBox');
     const fxTypeSelect = document.getElementById('fxTypeSelect');
     const fxSlider = document.getElementById('fxSlider');
     const fxValueVal = document.getElementById('fxValueVal');
     const btnPreviewFX = document.getElementById('btnPreviewFX');
     const btnApplyFX = document.getElementById('btnApplyFX');
+    
+    const eqCanvasContainer = document.getElementById('eqCanvasContainer');
+    const eqCanvasObj = document.getElementById('eqCanvas');
+    const eqCtx = eqCanvasObj.getContext('2d');
+    const customIRContainer = document.getElementById('customIRContainer');
+    const customIRInput = document.getElementById('customIRInput');
+    const btnLoadCustomIR = document.getElementById('btnLoadCustomIR');
+    
+    const compControlsContainer = document.getElementById('compControlsContainer');
+    const standardMixContainer = document.getElementById('standardMixContainer');
+    
+    const compDrive = document.getElementById('compDrive');
+    const compThresh = document.getElementById('compThresh');
+    const compRatio = document.getElementById('compRatio');
+    const compAttack = document.getElementById('compAttack');
+    const compRelease = document.getElementById('compRelease');
+    const compMakeup = document.getElementById('compMakeup');
+    
+    const compDriveVal = document.getElementById('compDriveVal');
+    const compThreshVal = document.getElementById('compThreshVal');
+    const compRatioVal = document.getElementById('compRatioVal');
+    const compAttackVal = document.getElementById('compAttackVal');
+    const compReleaseVal = document.getElementById('compReleaseVal');
+    const compMakeupVal = document.getElementById('compMakeupVal');
+
+    const bitmapModal = document.getElementById('bitmapModal');
+    const bmpDuration = document.getElementById('bmpDuration');
+    const btnApplyBitmap = document.getElementById('btnApplyBitmap');
+
+    // --- PARAMETRIC EQ DATA ---
+    let eqNodes = [
+        { f: 80, g: 0, q: 0.707, type: 'lowshelf' },
+        { f: 250, g: 0, q: 1.4, type: 'peaking' },
+        { f: 1000, g: 0, q: 1.4, type: 'peaking' },
+        { f: 4000, g: 0, q: 1.4, type: 'peaking' },
+        { f: 10000, g: 0, q: 0.707, type: 'highshelf' }
+    ];
+    let draggingEqNode = -1;
+    let hoveredEqNode = -1;
+    let uiBiquads = null;
+    let eqFreqsArray = null;
+
+    const MIN_F = 20;
+    const MAX_F = 20000;
+    const MAX_GAIN = 24;
+
+    function getLogX(freq, w) {
+        return ((Math.log10(freq) - Math.log10(MIN_F)) / (Math.log10(MAX_F) - Math.log10(MIN_F))) * w;
+    }
+    
+    function xToFreq(x, w) {
+        return 10 ** ((x / w) * (Math.log10(MAX_F) - Math.log10(MIN_F)) + Math.log10(MIN_F));
+    }
+    
+    function gainToY(gain, h) {
+        return h/2 - (gain / MAX_GAIN) * (h/2 - 10);
+    }
+    
+    function yToGain(y, h) {
+        return ((h/2 - y) / (h/2 - 10)) * MAX_GAIN;
+    }
 
     function hexToRgba(hex, alpha) {
-        let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16); 
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
     themeColorPicker.addEventListener('input', (e) => {
-        currentThemeColor = e.target.value; 
-        document.documentElement.style.setProperty('--accent-color', currentThemeColor); 
-        document.documentElement.style.setProperty('--accent-dim', hexToRgba(currentThemeColor, 0.15));
-        if (isPlaying) btnPlay.style.color = currentThemeColor; 
-        if (isLoopingActive) btnLoop.style.color = currentThemeColor; 
-        if (isChopMode) btnChopMode.style.color = currentThemeColor;
-        if (isPreviewingAmp) btnPreviewAmp.style.color = currentThemeColor; 
-        if (isPreviewingFX) btnPreviewFX.style.color = currentThemeColor;
+        currentThemeColor = e.target.value;
+         document.documentElement.style.setProperty('--accent-color', currentThemeColor);
+         document.documentElement.style.setProperty('--accent-dim', hexToRgba(currentThemeColor, 0.15));
+        if (isPlaying) btnPlay.style.color = currentThemeColor;
+         if (isLoopingActive) btnLoop.style.color = currentThemeColor;
+         if (isChopMode) btnChopMode.style.color = currentThemeColor;
+        if (isPreviewingAmp) btnPreviewAmp.style.color = currentThemeColor;
+         if (isPreviewingFX) btnPreviewFX.style.color = currentThemeColor;
         if (isBpmMode) menuTimeFormat.style.color = currentThemeColor;
         if (showPeakSeparators) menuPeakSep.style.color = currentThemeColor;
-        draw(currentPlayTime);
+        if (isSpectralMode) { menuSpectralMode.style.color = currentThemeColor; specCacheValid = false; }
     });
 
     function changeBpm(delta) {
@@ -176,7 +580,6 @@
         btn.addEventListener('mousedown', start); btn.addEventListener('touchstart', start);
         btn.addEventListener('mouseup', stop); btn.addEventListener('mouseleave', stop); btn.addEventListener('touchend', stop);
     }
-        
     setupBpmStepper(document.getElementById('btnBpmUp'), 1);
     setupBpmStepper(document.getElementById('btnBpmDown'), -1);
 
@@ -188,6 +591,14 @@
         updateTimeDisplay(currentPlayTime); draw(currentPlayTime);
     }
 
+    function toggleSpectralMode() {
+        isSpectralMode = !isSpectralMode;
+        menuSpectralMode.innerText = `Spectral Mode: ${isSpectralMode ? 'ON' : 'OFF'}`;
+        menuSpectralMode.style.color = isSpectralMode ? 'var(--accent-color)' : 'var(--text-main)';
+        menuSilenceBand.style.display = isSpectralMode ? 'block' : 'none';
+        specCacheValid = false; draw(currentPlayTime);
+    }
+
     function togglePeakSeparators() {
         showPeakSeparators = !showPeakSeparators;
         menuPeakSep.innerText = `Peak Separators: ${showPeakSeparators ? 'ON' : 'OFF'}`;
@@ -197,7 +608,7 @@
 
     function adjustVerticalZoom(delta) {
         ampZoom = Math.max(0.1, Math.min(10.0, ampZoom + delta));
-        updateUI(); draw(currentPlayTime);
+        specCacheValid = false; updateUI(); draw(currentPlayTime);
     }
 
     function closeMenus() { document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active')); }
@@ -208,7 +619,23 @@
         document.querySelectorAll('.dropdown').forEach(d => { if (d.id !== menuId) d.parentElement.classList.remove('active'); });
         if (e) e.currentTarget.classList.toggle('active');
     }
-    window.onclick = closeMenus;
+    window.addEventListener('click', (e) => {
+        if (!e.target.closest('.menu-item')) closeMenus();
+    });
+
+    function openAudioTrigger(e) {
+        if (e) e.stopPropagation();
+        closeMenus();
+        input.value = '';
+        input.click();
+    }
+
+    function openBitmapTrigger(e) {
+        if (e) e.stopPropagation();
+        closeMenus();
+        loadBitmapInput.value = '';
+        loadBitmapInput.click();
+    }
 
     function toggleZeroCross() { isZeroCross = !isZeroCross; menuZeroCross.innerText = `Zero Cross: ${isZeroCross ? 'ON' : 'OFF'}`; menuZeroCross.style.color = isZeroCross ? 'var(--accent-color)' : 'var(--text-main)'; }
 
@@ -223,14 +650,14 @@
     window.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT') return;
         if (e.code === 'Space') {
-            e.preventDefault(); 
-            if (isRecording) stopRecording();
+            e.preventDefault();
+             if (isRecording) stopRecording();
             else if (isPlaying) stopAudio();
             else if (audioBuf) startAudio(currentPlayTime);
         }
-        if (e.code === 'KeyR') { 
-            e.preventDefault(); 
-            if (isRecording) stopRecording(); else startRecording(); 
+        if (e.code === 'KeyR') {
+            e.preventDefault();
+            if (isRecording) stopRecording(); else startRecording();
         }
         if (e.ctrlKey || e.metaKey) {
             if (e.code === 'KeyZ') { e.preventDefault(); undo(); }
@@ -256,12 +683,11 @@
         const { visibleSamples, totalLen } = getVisibleData();
         const thumbWidth = Math.max(20, (visibleSamples / totalLen) * trackWidth);
         const maxScrollLeft = trackWidth - thumbWidth;
-                
+        
         let newLeft = clickX - (thumbWidth / 2);
         newLeft = Math.max(0, Math.min(newLeft, maxScrollLeft));
         scrollPos = maxScrollLeft === 0 ? 0 : newLeft / maxScrollLeft;
-                
-        draw(currentPlayTime); updateUI();
+        specCacheValid = false; draw(currentPlayTime); updateUI();
     };
 
     regionVolWheel.onmousedown = (e) => {
@@ -269,13 +695,13 @@
         e.stopPropagation();
         isDraggingVolWheel = true;
         volWheelStartY = e.clientY;
-                
+        
         saveState();
-                
+        
         const sSmp = Math.floor(loopStart * audioBuf.sampleRate);
         const eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
         const len = eSmp - sSmp;
-                
+        
         regionBackup = [];
         for (let c = 0; c < audioBuf.numberOfChannels; c++) {
             const data = audioBuf.getChannelData(c);
@@ -286,6 +712,19 @@
         currentVolGain = 1.0;
     };
 
+    function yToFreq(y) {
+        const h = canvas.height - 18 - 24;
+         if (y < 18) y = 18; if (y > canvas.height - 24) y = canvas.height - 24;
+        const maxFreq = audioBuf ? audioBuf.sampleRate / 2 : 22050;
+        return maxFreq * (1.0 - (y - 18) / h);
+    }
+
+    function freqToY(f) {
+        const h = canvas.height - 18 - 24;
+        const maxFreq = audioBuf ? audioBuf.sampleRate / 2 : 22050;
+        return 18 + h * (1.0 - (f / maxFreq));
+    }
+
     window.addEventListener('mousemove', (e) => {
         if (isDraggingThumb) {
             const deltaX = e.clientX - dragThumbStartX;
@@ -293,20 +732,20 @@
             const { visibleSamples, totalLen } = getVisibleData();
             const thumbWidth = Math.max(20, (visibleSamples / totalLen) * trackWidth);
             const maxScrollLeft = trackWidth - thumbWidth;
-                        
+            
             if (maxScrollLeft > 0) {
                 let newPos = dragThumbStartScrollPos + (deltaX / maxScrollLeft);
                 scrollPos = Math.max(0, Math.min(1, newPos));
-                draw(currentPlayTime); updateUI();
+                specCacheValid = false; draw(currentPlayTime); updateUI();
             }
             return;
         }
 
         if (isDraggingVolWheel) {
             const deltaY = volWheelStartY - e.clientY;
-            currentVolGain = Math.max(0, 1.0 + (deltaY * 0.01)); 
-            regionVolWheel.style.transform = `rotate(${deltaY * 1.5}deg)`;
-                        
+            currentVolGain = Math.max(0, 1.0 + (deltaY * 0.01));
+             regionVolWheel.style.transform = `rotate(${deltaY * 1.5}deg)`;
+            
             const sSmp = Math.floor(loopStart * audioBuf.sampleRate);
             const eSmp = Math.floor(loopEnd * audioBuf.sampleRate);
             const len = eSmp - sSmp;
@@ -319,13 +758,14 @@
                 }
             }
             status.textContent = `TRIMMING SELECTION: ${currentVolGain.toFixed(2)}x`;
-            draw(currentPlayTime);
+            specCacheValid = false; draw(currentPlayTime);
             return;
         }
 
         if (!isDragging || !audioBuf || isRecording) return;
         const rect = canvas.getBoundingClientRect();
         const rawX = e.clientX - rect.left;
+        const rawY = e.clientY - rect.top;
         let time = Math.max(0, Math.min(audioBuf.duration, xToTime(rawX)));
 
         if (isChopMode && dragTarget === 'sliceMarker' && draggedSliceIndex !== null) {
@@ -335,7 +775,7 @@
             draggedSliceIndex = sliceMarkers.indexOf(time);
         } else {
             if (dragTarget === 'click_or_drag') {
-                if (Math.abs(rawX - dragStartX) > 4) {
+                if (Math.abs(rawX - dragStartX) > 4 || Math.abs(rawY - dragStartY) > 4) {
                     dragTarget = 'quickSelect';
                 } else {
                     currentPlayTime = time;
@@ -347,7 +787,14 @@
                 time = findZeroCrossing(time);
                 loopStart = Math.min(selectOriginTime, time);
                 loopEnd = Math.max(selectOriginTime, time);
-                if (loopEnd - loopStart < 0.001) loopEnd = loopStart + 0.001; 
+                if (loopEnd - loopStart < 0.001) loopEnd = loopStart + 0.001;
+                 if (isSpectralMode) {
+                    let curFreq = yToFreq(rawY);
+                    freqLow = Math.min(selectFreqOrigin, curFreq);
+                    freqHigh = Math.max(selectFreqOrigin, curFreq);
+                } else {
+                    freqLow = 0; freqHigh = audioBuf.sampleRate / 2;
+                }
                 currentPlayTime = loopStart;
                 updateTimeDisplay(currentPlayTime);
             } else if (dragTarget === 'start') {
@@ -363,11 +810,11 @@
         updateUI();
     });
 
-    window.addEventListener('mouseup', () => { 
-        if (isDraggingThumb) { isDraggingThumb = false; return; }
+    window.addEventListener('mouseup', () => {
+         if (isDraggingThumb) { isDraggingThumb = false; return; }
         if (isDraggingVolWheel) {
             isDraggingVolWheel = false; regionBackup = []; regionVolWheel.style.transform = `rotate(0deg)`;
-            status.textContent = `APPLIED TRIM: ${currentVolGain.toFixed(2)}x`; draw(currentPlayTime); return;
+            status.textContent = `APPLIED TRIM: ${currentVolGain.toFixed(2)}x`; specCacheValid = false; draw(currentPlayTime); return;
         }
         if (isDragging && (dragTarget === 'click_or_drag' || dragTarget === 'quickSelect') && wasPlayingBeforeDrag) {
             startAudio(currentPlayTime);
@@ -376,17 +823,13 @@
         isDragging = false;
         dragTarget = null;
         draggedSliceIndex = null;
-        draw(currentPlayTime); 
-    });
+        draw(currentPlayTime);
+     });
 
     canvas.ondblclick = (e) => {
         if (!audioBuf || isRecording) return;
-        loopStart = 0;
-        loopEnd = audioBuf.duration;
-        currentPlayTime = 0;
-        updateTimeDisplay(currentPlayTime);
-        draw(currentPlayTime);
-        updateUI();
+        loopStart = 0; loopEnd = audioBuf.duration; freqLow = 0; freqHigh = audioBuf.sampleRate / 2;
+        currentPlayTime = 0; updateTimeDisplay(currentPlayTime); draw(currentPlayTime); updateUI();
     };
 
     btnRecord.onclick = async () => { if (isRecording) stopRecording(); else startRecording(); };
@@ -394,15 +837,15 @@
     async function startRecording() {
         if (isPlaying) stopAudio();
         status.textContent = 'REQUESTING MIC...';
-                
+        
         try {
             getAudioContext();
             if (audioCtx.state === 'suspended') await audioCtx.resume();
 
             mediaStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } });
 
-            recordStartOffset = currentPlayTime; 
-            const micSource = audioCtx.createMediaStreamSource(mediaStream);
+            recordStartOffset = currentPlayTime;
+             const micSource = audioCtx.createMediaStreamSource(mediaStream);
             analyser = audioCtx.createAnalyser(); analyser.fftSize = 1024;
             micSource.connect(analyser); liveWaveformData = []; recordingStartTime = audioCtx.currentTime;
 
@@ -413,58 +856,58 @@
 
             mediaRecorder = new MediaRecorder(mediaStream, selectedType ? { mimeType: selectedType } : undefined);
             mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
-                        
+            
             mediaRecorder.onstop = async () => {
                 status.textContent = 'PROCESSING RECORDING...';
                 cancelAnimationFrame(recAnimFrame);
-                                
+                
                 const blob = new Blob(recordedChunks, { type: selectedType || 'audio/webm' });
                 const arrayBuffer = await blob.arrayBuffer();
 
                 try {
                     const newAudioBuf = await audioCtx.decodeAudioData(arrayBuffer);
-                                        
+                    
                     if (audioBuf) {
                         saveState();
                         const insertSmp = Math.floor(recordStartOffset * audioBuf.sampleRate);
                         const newLen = Math.max(audioBuf.length, insertSmp + newAudioBuf.length);
                         const combinedBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, newLen, audioBuf.sampleRate);
-                                                
+                        
                         for (let c = 0; c < audioBuf.numberOfChannels; c++) {
                             const combinedData = combinedBuf.getChannelData(c);
                             const oldData = audioBuf.getChannelData(c);
                             const recData = newAudioBuf.numberOfChannels > c ? newAudioBuf.getChannelData(c) : newAudioBuf.getChannelData(0);
-                                                         
-                            combinedData.set(oldData);
-                                                        
+                            
+                             combinedData.set(oldData);
+                            
                             for (let i = 0; i < newAudioBuf.length; i++) {
-                                if (insertSmp + i < combinedData.length) {
-                                    // Destructive Replace
-                                    combinedData[insertSmp + i] = recData[i]; 
-                                 }
+                                if (insertSmp + i < combinedData.length) { combinedData[insertSmp + i] = recData[i]; }
                             }
                         }
-                                                
+                        
                         const oldDur = audioBuf.duration; audioBuf = combinedBuf; zoomH = Math.max(1, zoomH * (audioBuf.duration / oldDur));
-                        updateUI(); draw(currentPlayTime); status.textContent = 'RECORDING APPLIED';
-                                            
+                        specCacheValid = false; updateUI(); draw(currentPlayTime); status.textContent = 'RECORDING APPLIED';
                     } else { loadAudioBuffer(newAudioBuf, "RECORDING"); }
                 } catch (err) { status.textContent = 'ERR: DECODE FAILED'; console.error(err); }
-                                
-                mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; mediaRecorder = null; analyser = null;
+                
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(track => track.stop());
+                     mediaStream = null;
+                }
+                mediaRecorder = null; analyser = null;
             };
 
             if (audioBuf) startAudio(recordStartOffset);
 
             mediaRecorder.start(); isRecording = true; btnRecord.classList.add('recording-active');
-            status.textContent = audioBuf ? 'RECORDING (REPLACE)... [SPACE to Stop]' : 'RECORDING LIVE... [SPACE to Stop]';
+            status.textContent = audioBuf ? 'RECORDING (REPLACE)... [R to Stop]' : 'RECORDING LIVE... [R to Stop]';
             pollLiveAudio();
 
         } catch (err) {
             console.error("Mic error:", err); isRecording = false; btnRecord.classList.remove('recording-active');
             if (err.name === 'NotAllowedError') status.textContent = 'ERR: MIC DENIED';
             else if (err.name === 'NotFoundError') status.textContent = 'ERR: NO MIC FOUND';
-            else status.textContent = 'ERR: MIC INIT FAILED (NEEDS LOCALHOST)';
+            else status.textContent = 'ERR: MIC INIT FAILED';
         }
     }
 
@@ -472,7 +915,7 @@
         if (!audioBuf && !isRecording) return;
         const { startSmp, visibleSamples, totalLen } = getVisibleData();
         if (visibleSamples === 0) return;
-                
+        
         const sr = audioCtx ? audioCtx.sampleRate : 44100;
         const startTime = startSmp / sr;
         const visDuration = visibleSamples / sr;
@@ -481,16 +924,16 @@
         if (scrollable <= 0) { scrollPos = 0; return; }
 
         if (time > startTime + visDuration * 0.95) {
-            let newStart = startSmp + (visibleSamples * 0.85); 
-            scrollPos = Math.max(0, Math.min(1, newStart / scrollable));
+            let newStart = startSmp + (visibleSamples * 0.85);
+             scrollPos = Math.max(0, Math.min(1, newStart / scrollable)); specCacheValid = false;
         } else if (time < startTime) {
             let newStart = Math.max(0, (time * sr) - (visibleSamples * 0.1));
-            scrollPos = Math.max(0, Math.min(1, newStart / scrollable));
+            scrollPos = Math.max(0, Math.min(1, newStart / scrollable)); specCacheValid = false;
         }
     }
 
     function pollLiveAudio() {
-        if (!isRecording) return;
+        if (!isRecording || !analyser) return;
         const dataArray = new Float32Array(analyser.frequencyBinCount);
         analyser.getFloatTimeDomainData(dataArray);
         let min = 1.0, max = -1.0;
@@ -499,14 +942,14 @@
             if(dataArray[i] > max) max = dataArray[i];
         }
         liveWaveformData.push({min, max});
-                
+        
         let liveTime = recordStartOffset + (audioCtx.currentTime - recordingStartTime);
-        if (!audioBuf) { 
-            currentPlayTime = liveTime;
+        if (!audioBuf) {
+             currentPlayTime = liveTime;
             autoScroll(currentPlayTime);
-            updateTimeDisplay(currentPlayTime); 
-            draw(currentPlayTime); 
-        }
+            updateTimeDisplay(currentPlayTime);
+             draw(currentPlayTime);
+         }
         recAnimFrame = requestAnimationFrame(pollLiveAudio);
     }
 
@@ -514,13 +957,14 @@
         if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
         isRecording = false; btnRecord.classList.remove('recording-active'); status.textContent = 'STOPPED RECORDING';
     }
-        
+    
     function loadAudioBuffer(buf, name = "AUDIO") {
-        audioBuf = buf; loopStart = 0; loopEnd = audioBuf.duration; zoomH = 1; scrollPos = 0; currentPlayTime = 0; undoStack = []; sliceMarkers = [];
-        menuUndo.disabled = true; menuTrim.disabled = false; menuCut.disabled = false; menuCopy.disabled = false; menuPaste.disabled = false; menuMixPaste.disabled = false; menuSilence.disabled = false;
+        audioBuf = buf; loopStart = 0; loopEnd = audioBuf.duration; freqLow = 0; freqHigh = audioBuf.sampleRate / 2;
+        zoomH = 1; scrollPos = 0; currentPlayTime = 0; undoStack = []; sliceMarkers = []; specCacheValid = false;
+        menuUndo.disabled = true; menuTrim.disabled = false; menuCut.disabled = false; menuCopy.disabled = false; menuPaste.disabled = false; menuMixPaste.disabled = false; menuSilence.disabled = false; menuSilenceBand.disabled = false;
         menuExport.disabled = false; menuExportSlices.disabled = false; menuAmplify.disabled = false; menuFX.disabled = false;
-        menuFadeIn.disabled = false; menuFadeOut.disabled = false; btnPlay.disabled = false; btnStop.disabled = false; 
-        btnLoop.disabled = false; btnChopMode.disabled = false;
+        menuFadeIn.disabled = false; menuFadeOut.disabled = false; btnPlay.disabled = false; btnStop.disabled = false;
+         btnLoop.disabled = false; btnChopMode.disabled = false;
         status.textContent = `READY: ${name.toUpperCase()}`; updateUI(); draw(0); updateTimeDisplay(0);
     }
 
@@ -530,48 +974,139 @@
         return impulse;
     }
 
-    function getTubeCurve(amount) {
-        const k = amount; const n = 44100; const curve = new Float32Array(n); const deg = Math.PI / 180;
-        for (let i = 0; i < n; ++i) { let x = i * 2 / n - 1; curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x)); }
-        return curve;
-    }
-
     function buildFXChain(ctx, type, intensity) {
         const input = ctx.createGain(), output = ctx.createGain(); let wetGain = ctx.createGain(), dryGain = ctx.createGain();
         input.connect(dryGain); dryGain.connect(output);
+        let fxObj = { input, output, wetGain, dryGain, filters: [] };
+        
+        const isOffline = typeof ctx.startRendering === 'function';
+
         if (type === 'echo') {
             const delay = ctx.createDelay(); delay.delayTime.value = 0.33; const feedback = ctx.createGain(); feedback.gain.value = 0.4;
             const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 2000;
             input.connect(delay); delay.connect(feedback); feedback.connect(filter); filter.connect(delay); delay.connect(wetGain);
             wetGain.gain.value = intensity; dryGain.gain.value = 1.0;
+            fxObj.update = (val) => { wetGain.gain.setTargetAtTime(val, ctx.currentTime, 0.05); };
+            
         } else if (type === 'reverb') {
-            const convolver = ctx.createConvolver(); if (!proceduralIR) proceduralIR = generateReverbIR(ctx); convolver.buffer = proceduralIR;
-            input.connect(convolver); convolver.connect(wetGain); wetGain.gain.value = intensity; dryGain.gain.value = 1.0 - (intensity * 0.5); 
-        } else if (type === 'tube') {
-            const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -20; comp.knee.value = 20; comp.ratio.value = 4; comp.attack.value = 0.01; comp.release.value = 0.1;
-            const shaper = ctx.createWaveShaper(); shaper.curve = getTubeCurve(intensity * 15); shaper.oversample = '4x';
-            const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 6000 + ((1 - intensity) * 14000);
-            input.connect(comp); comp.connect(shaper); shaper.connect(filter); filter.connect(wetGain); 
-            wetGain.gain.value = intensity; dryGain.gain.value = 1.0 - (intensity * 0.5); 
+            const convolver = ctx.createConvolver();
+            if (customIRBuffer) { convolver.buffer = customIRBuffer; }
+            else { if (!proceduralIR) proceduralIR = generateReverbIR(ctx); convolver.buffer = proceduralIR; }
+            
+            input.connect(convolver); convolver.connect(wetGain);
+            wetGain.gain.value = intensity; dryGain.gain.value = 1.0 - (intensity * 0.5);
+            fxObj.update = (val) => {
+                wetGain.gain.setTargetAtTime(val, ctx.currentTime, 0.05);
+                dryGain.gain.setTargetAtTime(1.0 - (val * 0.5), ctx.currentTime, 0.05);
+            };
+
+        } else if (type === 'compressor') {
+            const preGain = ctx.createGain();
+            const comp = ctx.createDynamicsCompressor();
+            const makeup = ctx.createGain();
+            
+            const driveDb = parseFloat(compDrive.value);
+            preGain.gain.value = Math.pow(10, driveDb / 20);
+            
+            comp.threshold.value = parseFloat(compThresh.value);
+            comp.ratio.value = parseFloat(compRatio.value);
+            comp.attack.value = parseFloat(compAttack.value) / 1000;
+            comp.release.value = parseFloat(compRelease.value) / 1000;
+            comp.knee.value = 0; 
+
+            const dbVal = parseFloat(compMakeup.value);
+            makeup.gain.value = Math.pow(10, dbVal / 20);
+
+            input.connect(preGain); preGain.connect(comp); comp.connect(makeup); makeup.connect(wetGain);
+            
+            wetGain.gain.value = 1.0; 
+            dryGain.gain.value = 0.0; 
+            
+            fxObj.updateComp = () => {
+                preGain.gain.setTargetAtTime(Math.pow(10, parseFloat(compDrive.value) / 20), ctx.currentTime, 0.05);
+                comp.threshold.setTargetAtTime(parseFloat(compThresh.value), ctx.currentTime, 0.05);
+                comp.ratio.setTargetAtTime(parseFloat(compRatio.value), ctx.currentTime, 0.05);
+                comp.attack.setTargetAtTime(parseFloat(compAttack.value) / 1000, ctx.currentTime, 0.05);
+                comp.release.setTargetAtTime(parseFloat(compRelease.value) / 1000, ctx.currentTime, 0.05);
+                const mg = parseFloat(compMakeup.value);
+                makeup.gain.setTargetAtTime(Math.pow(10, mg / 20), ctx.currentTime, 0.05);
+            };
+             
+        } else if (type === 'eq') {
+            if (!isOffline) {
+                if (!eqAnalyser) { eqAnalyser = ctx.createAnalyser(); eqAnalyser.fftSize = 2048; eqAnalyser.smoothingTimeConstant = 0.85; }
+                input.connect(eqAnalyser);
+            }
+            
+            let prev = input;
+            for(let i=0; i<eqNodes.length; i++) {
+                let f = ctx.createBiquadFilter();
+                f.type = eqNodes[i].type;
+                f.frequency.value = eqNodes[i].f;
+                f.Q.value = eqNodes[i].q;
+                f.gain.value = eqNodes[i].g;
+                prev.connect(f);
+                prev = f;
+                fxObj.filters.push(f);
+            }
+            prev.connect(wetGain);
+            wetGain.gain.value = intensity; dryGain.gain.value = 1.0 - intensity;
+            
+            fxObj.update = (val) => {
+                wetGain.gain.setTargetAtTime(val, ctx.currentTime, 0.05);
+                dryGain.gain.setTargetAtTime(1.0 - val, ctx.currentTime, 0.05);
+            };
+            fxObj.updateEQ = () => {
+                for(let i=0; i<eqNodes.length; i++) {
+                    fxObj.filters[i].frequency.setTargetAtTime(eqNodes[i].f, ctx.currentTime, 0.02);
+                    fxObj.filters[i].Q.setTargetAtTime(eqNodes[i].q, ctx.currentTime, 0.02);
+                    fxObj.filters[i].gain.setTargetAtTime(eqNodes[i].g, ctx.currentTime, 0.02);
+                }
+            };
         }
-        wetGain.connect(output); return { input, output };
+        
+        wetGain.connect(output);
+        return fxObj;
+    }
+
+    function computeMiniFFT(real, imag) {
+        let n = real.length, i, j, k, n2 = n / 2;
+        for (i = 1, j = 0; i < n - 1; i++) {
+            let n1 = n2; while (j >= n1) { j -= n1; n1 /= 2; } j += n1;
+            if (i < j) { 
+                let tR = real[i], tI = imag[i]; 
+                real[i] = real[j]; imag[i] = imag[j];
+                real[j] = tR; imag[j] = tI; 
+            }
+        }
+        for (i = 1; i < n; i <<= 1) {
+            let step = i << 1, wR = Math.cos(-Math.PI / i), wI = Math.sin(-Math.PI / i);
+            for (j = 0; j < n; j += step) {
+                let uR = 1, uI = 0;
+                for (k = 0; k < i; k++) {
+                    let idx = j + k; 
+                    let tR = uR * real[idx + i] - uI * imag[idx + i]; 
+                    let tI = uR * imag[idx + i] + uI * real[idx + i];
+                    real[idx + i] = real[idx] - tR; 
+                    imag[idx + i] = imag[idx] - tI; 
+                    real[idx] += tR; 
+                    imag[idx] += tI;
+                    let nextUR = uR * wR - uI * wI; uI = uR * wI + uI * wR; uR = nextUR;
+                }
+            }
+        }
     }
 
     function findZeroCrossing(time) {
         if (!audioBuf || !isZeroCross) return time;
-        const data = audioBuf.getChannelData(0); 
-        const centerIdx = Math.floor(time * audioBuf.sampleRate); 
-        const range = 1000; 
-                
-        for (let offset = 0; offset < range; offset++) {
+        const data = audioBuf.getChannelData(0);
+         const centerIdx = Math.floor(time * audioBuf.sampleRate);
+         const range = 1000;
+         for (let offset = 0; offset < range; offset++) {
             let iR = centerIdx + offset;
-            if (iR > 0 && iR < data.length - 1) {
-                if (data[iR] * data[iR - 1] <= 0) return iR / audioBuf.sampleRate;
-            }
+            if (iR > 0 && iR < data.length - 1) { if (data[iR] * data[iR - 1] <= 0) return iR / audioBuf.sampleRate; }
             let iL = centerIdx - offset;
-            if (iL > 0 && iL < data.length - 1) {
-                if (data[iL] * data[iL - 1] <= 0) return iL / audioBuf.sampleRate;
-            }
+            if (iL > 0 && iL < data.length - 1) { if (data[iL] * data[iL - 1] <= 0) return iL / audioBuf.sampleRate; }
         }
         return time;
     }
@@ -581,8 +1116,13 @@
         if (sourceNode) { try { sourceNode.stop(); } catch(e){} sourceNode.disconnect(); }
         sourceNode = audioCtx.createBufferSource(); sourceNode.buffer = audioBuf;
 
-        if (isPreviewingFX) { let fx = buildFXChain(audioCtx, fxTypeSelect.value, fxSlider.value / 100); sourceNode.connect(fx.input); fx.output.connect(masterGain);
-        } else { sourceNode.connect(masterGain); }
+        if (isPreviewingFX) {
+            activeFXChain = buildFXChain(audioCtx, fxTypeSelect.value, fxSlider.value / 100);
+            sourceNode.connect(activeFXChain.input);
+            activeFXChain.output.connect(masterGain);
+        } else {
+            sourceNode.connect(masterGain);
+        }
 
         if (isChopMode && isTriggerMode) {
             let sorted = [0, ...sliceMarkers.sort((a,b)=>a-b), audioBuf.duration]; let sStart = 0, sEnd = audioBuf.duration;
@@ -602,17 +1142,16 @@
     function stopAudio() {
         if (sourceNode) { try { sourceNode.stop(); } catch(e){} sourceNode.disconnect(); sourceNode = null; }
         isPlaying = false; if (isPreviewingAmp) { isPreviewingAmp = false; masterGain.gain.value = 1.0; btnPreviewAmp.style.color = ""; }
-        if (isPreviewingFX) { isPreviewingFX = false; btnPreviewFX.style.color = ""; }
+        if (isPreviewingFX) { isPreviewingFX = false; btnPreviewFX.style.color = ""; activeFXChain = null; }
         btnPlay.style.color = ""; cancelAnimationFrame(aniFrame); draw(currentPlayTime);
     }
 
-    btnPlay.onclick = async () => { 
-        if (isRecording) return; getAudioContext(); if (audioCtx.state === 'suspended') await audioCtx.resume();
-        if (isPlaying) stopAudio(); else startAudio(currentPlayTime); 
-    };
+    btnPlay.onclick = async () => {
+         if (isRecording) return; getAudioContext(); if (audioCtx.state === 'suspended') await audioCtx.resume();
+        if (isPlaying) stopAudio(); else startAudio(currentPlayTime);
+     };
 
     btnStop.onclick = () => { if(!isRecording) { stopAudio(); currentPlayTime = 0; draw(0); updateTimeDisplay(0); } };
-        
     btnLoop.onclick = () => {
         isLoopingActive = !isLoopingActive; btnLoop.style.color = isLoopingActive ? "var(--accent-color)" : "";
         if (sourceNode && !isChopMode) { if (isPlaying) { let t = currentPlayTime; stopAudio(); startAudio(t); } }
@@ -635,10 +1174,10 @@
             const sixteenths = Math.floor((totalBeats % 1) * 4) + 1;
             timeDisplay.textContent = `${bars.toString().padStart(3, '0')}:${beats}:${sixteenths}`;
         } else {
-            const mins = Math.floor(timeSec / 60).toString().padStart(2, '0'); 
-            const secs = Math.floor(timeSec % 60).toString().padStart(2, '0');
-            const millis = Math.floor((timeSec % 1) * 1000).toString().padStart(3, '0'); 
-            timeDisplay.textContent = `${mins}:${secs}:${millis}`;
+            const mins = Math.floor(timeSec / 60).toString().padStart(2, '0');
+             const secs = Math.floor(timeSec % 60).toString().padStart(2, '0');
+            const millis = Math.floor((timeSec % 1) * 1000).toString().padStart(3, '0');
+             timeDisplay.textContent = `${mins}:${secs}:${millis}`;
         }
     }
 
@@ -658,9 +1197,9 @@
         }
 
         if (baseLength === 0) return { startSmp: 0, visibleSamples: 0, totalLen: 0 };
-        const visibleSamples = baseLength / zoomH; 
-        const scrollable = baseLength - visibleSamples; 
-        const startSmp = scrollPos * Math.max(0, scrollable);
+        const visibleSamples = baseLength / zoomH;
+         const scrollable = baseLength - visibleSamples;
+         const startSmp = scrollPos * Math.max(0, scrollable);
         return { startSmp, visibleSamples, totalLen: baseLength };
     }
 
@@ -678,11 +1217,11 @@
         if (!audioBuf || isRecording) return; e.preventDefault();
         if (e.shiftKey) { const step = (e.deltaY * 0.0005) / zoomH * 10; scrollPos = Math.max(0, Math.min(1, scrollPos + step));
         } else {
-            const focalTime = xToTime(e.offsetX); const zoomFactor = e.deltaY > 0 ? 0.85 : 1.15; zoomH = Math.max(1, Math.min(50000, zoomH * zoomFactor)); 
-            const { totalLen } = getVisibleData(); const newVisible = totalLen / zoomH; const sr = audioBuf ? audioBuf.sampleRate : (audioCtx ? audioCtx.sampleRate : 44100);
+            const focalTime = xToTime(e.offsetX); const zoomFactor = e.deltaY > 0 ? 0.85 : 1.15; zoomH = Math.max(1, Math.min(50000, zoomH * zoomFactor));
+             const { totalLen } = getVisibleData(); const newVisible = totalLen / zoomH; const sr = audioBuf ? audioBuf.sampleRate : (audioCtx ? audioCtx.sampleRate : 44100);
             const newStartSmp = (focalTime * sr) - (e.offsetX / canvas.width) * newVisible; const maxScroll = totalLen - newVisible; scrollPos = maxScroll <= 0 ? 0 : Math.max(0, Math.min(1, newStartSmp / maxScroll));
         }
-        draw(currentPlayTime); updateUI();
+        specCacheValid = false; draw(currentPlayTime); updateUI();
     };
 
     canvas.addEventListener('mousemove', (e) => {
@@ -690,11 +1229,10 @@
             if (canvas.style.cursor !== 'crosshair') canvas.style.cursor = 'crosshair';
             return;
         }
-        const rect = canvas.getBoundingClientRect(); 
-        const rawX = e.clientX - rect.left;
-        let time = xToTime(rawX); 
-        const tol = (15 / canvas.width) * (audioBuf.length / zoomH / audioBuf.sampleRate);
-                
+        const rect = canvas.getBoundingClientRect();
+         const rawX = e.clientX - rect.left;
+        let time = xToTime(rawX);
+         const tol = (15 / canvas.width) * (audioBuf.length / zoomH / audioBuf.sampleRate);
         if (!isChopMode && (Math.abs(time - loopStart) < tol || Math.abs(time - loopEnd) < tol)) {
             canvas.style.cursor = 'col-resize';
         } else {
@@ -703,30 +1241,31 @@
     });
 
     canvas.onmousedown = (e) => {
-        if (!audioBuf || isRecording) return; 
-        const rect = canvas.getBoundingClientRect(); 
-        const rawX = e.clientX - rect.left;
-        let time = xToTime(rawX); 
-        const tol = (15 / canvas.width) * (audioBuf.length / zoomH / audioBuf.sampleRate);
+        if (!audioBuf || isRecording) return;
+         const rect = canvas.getBoundingClientRect();
+         const rawX = e.clientX - rect.left;
+        const rawY = e.clientY - rect.top;
+        let time = xToTime(rawX);
+         const tol = (15 / canvas.width) * (audioBuf.length / zoomH / audioBuf.sampleRate);
 
         if (isChopMode) {
-            let clickedMarkerIdx = -1; 
-            for (let i = 0; i < sliceMarkers.length; i++) { 
-                if (Math.abs(time - sliceMarkers[i]) < tol) { clickedMarkerIdx = i; break; } 
-            }
-            if (isDeleteChopMode) { 
-                if (clickedMarkerIdx !== -1) { sliceMarkers.splice(clickedMarkerIdx, 1); draw(currentPlayTime); } 
-                return; 
-            }
-            if (clickedMarkerIdx !== -1) { 
-                draggedSliceIndex = clickedMarkerIdx; dragTarget = 'sliceMarker'; isDragging = true; 
-            } else if (isTriggerMode) {
+            let clickedMarkerIdx = -1;
+             for (let i = 0; i < sliceMarkers.length; i++) {
+                 if (Math.abs(time - sliceMarkers[i]) < tol) { clickedMarkerIdx = i; break; }
+             }
+            if (isDeleteChopMode) {
+                 if (clickedMarkerIdx !== -1) { sliceMarkers.splice(clickedMarkerIdx, 1); draw(currentPlayTime); }
+                 return;
+             }
+            if (clickedMarkerIdx !== -1) {
+                 draggedSliceIndex = clickedMarkerIdx; dragTarget = 'sliceMarker'; isDragging = true;
+             } else if (isTriggerMode) {
                 let sorted = [0, ...sliceMarkers.sort((a,b)=>a-b), audioBuf.duration]; let sStart = 0;
                 for (let i = 0; i < sorted.length - 1; i++) { if (time >= sorted[i] && time < sorted[i+1]) { sStart = sorted[i]; break; } }
                 currentPlayTime = Math.max(0, Math.min(audioBuf.duration, sStart)); if (isPlaying) stopAudio(); startAudio(currentPlayTime); isDragging = false;
-            } else { 
-                time = findZeroCrossing(time); sliceMarkers.push(Math.max(0, Math.min(audioBuf.duration, time))); sliceMarkers.sort((a, b) => a - b); draggedSliceIndex = sliceMarkers.indexOf(time); dragTarget = 'sliceMarker'; isDragging = true; draw(currentPlayTime); 
-            }
+            } else {
+                 time = findZeroCrossing(time); sliceMarkers.push(Math.max(0, Math.min(audioBuf.duration, time))); sliceMarkers.sort((a, b) => a - b); draggedSliceIndex = sliceMarkers.indexOf(time); dragTarget = 'sliceMarker'; isDragging = true; draw(currentPlayTime);
+             }
             return;
         }
 
@@ -740,7 +1279,9 @@
             isDragging = true;
         } else {
             dragStartX = rawX;
+            dragStartY = rawY;
             selectOriginTime = time;
+            selectFreqOrigin = isSpectralMode ? yToFreq(rawY) : 0;
             dragTarget = 'click_or_drag';
             isDragging = true;
             wasPlayingBeforeDrag = isPlaying;
@@ -759,25 +1300,25 @@
         if (undoStack.length === 0) return; const wasPlaying = isPlaying; if (wasPlaying) stopAudio();
         const state = undoStack.pop(); audioBuf = state.buf; zoomH = state.zoom; scrollPos = state.scroll; loopStart = state.lStart; loopEnd = state.lEnd;
         if (undoStack.length === 0) menuUndo.disabled = true; currentPlayTime = Math.min(currentPlayTime, audioBuf.duration);
-        updateUI(); draw(currentPlayTime); status.textContent = "STATE REVERTED"; if (wasPlaying) startAudio(currentPlayTime);
+        specCacheValid = false; updateUI(); draw(currentPlayTime); status.textContent = "STATE REVERTED"; if (wasPlaying) startAudio(currentPlayTime);
     }
-        
+    
     function copySelection() {
         if (!audioBuf) return; const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp;
         if (len <= 0) return; getAudioContext(); clipboardData = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate);
-        for(let c=0; c<audioBuf.numberOfChannels; c++) { clipboardData.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); } 
-        menuPaste.disabled = false; menuMixPaste.disabled = false; status.textContent = "COPIED TO CLIPBOARD";
+        for(let c=0; c<audioBuf.numberOfChannels; c++) { clipboardData.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); }
+         menuPaste.disabled = false; menuMixPaste.disabled = false; status.textContent = "COPIED TO CLIPBOARD";
     }
 
     function trimSelection() {
         if (!audioBuf) return; saveState();
         const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp;
-        if (len <= 0 || len === audioBuf.length) return; 
-        const newBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate);
+        if (len <= 0 || len === audioBuf.length) return;
+         const newBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate);
         for(let c=0; c<audioBuf.numberOfChannels; c++) { newBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); }
         const wasPlaying = isPlaying; if (wasPlaying) stopAudio();
         audioBuf = newBuf; loopStart = 0; loopEnd = audioBuf.duration; currentPlayTime = 0; scrollPos = 0; zoomH = 1;
-        updateUI(); draw(currentPlayTime); status.textContent = "TRIMMED OUTSIDE SELECTION"; if (wasPlaying) startAudio(0);
+        specCacheValid = false; updateUI(); draw(currentPlayTime); status.textContent = "TRIMMED OUTSIDE SELECTION"; if (wasPlaying) startAudio(0);
     }
 
     function cutSelection() {
@@ -786,7 +1327,7 @@
         for(let c=0; c<audioBuf.numberOfChannels; c++) { const oldData = audioBuf.getChannelData(c); const newData = newBuf.getChannelData(c); newData.set(oldData.subarray(0, sSmp), 0); newData.set(oldData.subarray(eSmp), sSmp); }
         const wasPlaying = isPlaying; if (wasPlaying) stopAudio();
         audioBuf = newBuf; zoomH = Math.max(1, zoomH * (audioBuf.duration / oldDur)); loopEnd = Math.min(loopStart + 0.05, audioBuf.duration); currentPlayTime = Math.min(currentPlayTime, audioBuf.duration);
-        updateUI(); draw(currentPlayTime); status.textContent = "CUT SELECTION"; if (wasPlaying) startAudio(loopStart);
+        specCacheValid = false; updateUI(); draw(currentPlayTime); status.textContent = "CUT SELECTION"; if (wasPlaying) startAudio(loopStart);
     }
 
     function pasteSelection() {
@@ -795,88 +1336,395 @@
         for(let c=0; c<audioBuf.numberOfChannels; c++) { const oldData = audioBuf.getChannelData(c); const clipData = clipboardData.numberOfChannels > c ? clipboardData.getChannelData(c) : clipboardData.getChannelData(0); const newData = newBuf.getChannelData(c); newData.set(oldData.subarray(0, insertSmp), 0); newData.set(clipData, insertSmp); newData.set(oldData.subarray(insertSmp), insertSmp + clipData.length); }
         const wasPlaying = isPlaying; if (wasPlaying) stopAudio();
         audioBuf = newBuf; zoomH = Math.max(1, zoomH * (audioBuf.duration / oldDur)); loopStart = currentPlayTime; loopEnd = currentPlayTime + clipboardData.duration;
-        updateUI(); draw(currentPlayTime); status.textContent = "PASTED (INSERTED) AT PLAYHEAD"; if (wasPlaying) startAudio(loopStart);
+        specCacheValid = false; updateUI(); draw(currentPlayTime); status.textContent = "PASTED (INSERTED) AT PLAYHEAD"; if (wasPlaying) startAudio(loopStart);
     }
 
     function mixPasteSelection() {
-        if (!audioBuf || !clipboardData) return; saveState(); 
-        const oldDur = audioBuf.duration; const insertSmp = Math.floor(currentPlayTime * audioBuf.sampleRate); 
-        const newLen = Math.max(audioBuf.length, insertSmp + clipboardData.length);
+        if (!audioBuf || !clipboardData) return; saveState();
+         const oldDur = audioBuf.duration; const insertSmp = Math.floor(currentPlayTime * audioBuf.sampleRate);
+         const newLen = Math.max(audioBuf.length, insertSmp + clipboardData.length);
         const newBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, newLen, audioBuf.sampleRate);
-                
-        for(let c=0; c<audioBuf.numberOfChannels; c++) { 
-            const oldData = audioBuf.getChannelData(c); 
-            const clipData = clipboardData.numberOfChannels > c ? clipboardData.getChannelData(c) : clipboardData.getChannelData(0); 
-            const newData = newBuf.getChannelData(c);
-                        
-            newData.set(oldData, 0);
-                        
-            for (let i = 0; i < clipData.length; i++) {
-               newData[insertSmp + i] += clipData[i]; 
-            }
+        for(let c=0; c<audioBuf.numberOfChannels; c++) {
+             const oldData = audioBuf.getChannelData(c);
+             const clipData = clipboardData.numberOfChannels > c ? clipboardData.getChannelData(c) : clipboardData.getChannelData(0);
+             const newData = newBuf.getChannelData(c);
+             newData.set(oldData, 0);
+             for (let i = 0; i < clipData.length; i++) {
+               newData[insertSmp + i] += clipData[i];
+             }
         }
         const wasPlaying = isPlaying; if (wasPlaying) stopAudio();
-        audioBuf = newBuf; zoomH = Math.max(1, zoomH * (audioBuf.duration / oldDur)); 
-        loopStart = currentPlayTime; loopEnd = currentPlayTime + clipboardData.duration;
-        updateUI(); draw(currentPlayTime); status.textContent = "MIX PASTED (SUMMED) AT PLAYHEAD"; 
-        if (wasPlaying) startAudio(loopStart);
+        audioBuf = newBuf; zoomH = Math.max(1, zoomH * (audioBuf.duration / oldDur));
+         loopStart = currentPlayTime; loopEnd = currentPlayTime + clipboardData.duration;
+        specCacheValid = false; updateUI(); draw(currentPlayTime); status.textContent = "MIX PASTED (SUMMED) AT PLAYHEAD";
+         if (wasPlaying) startAudio(loopStart);
     }
 
     function silenceSelection() {
         if (!audioBuf) return; saveState(); const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp; if (len <= 0) return;
-        for (let c = 0; c < audioBuf.numberOfChannels; c++) { const data = audioBuf.getChannelData(c); for (let i = 0; i < len; i++) { data[sSmp + i] = 0; } } draw(currentPlayTime); status.textContent = "REGION SILENCED";
+        for (let c = 0; c < audioBuf.numberOfChannels; c++) { const data = audioBuf.getChannelData(c); for (let i = 0; i < len; i++) { data[sSmp + i] = 0; } } specCacheValid = false; draw(currentPlayTime); status.textContent = "REGION SILENCED";
+    }
+
+    async function silenceFreqBand() {
+        if (!audioBuf || freqLow >= freqHigh) return; saveState(); status.textContent = "APPLYING SPECTRAL CUT...";
+        const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp; if (len <= 0) return;
+        
+        const OfflineCtxClass = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        const offCtx = new OfflineCtxClass(audioBuf.numberOfChannels, len, audioBuf.sampleRate);
+        const source = offCtx.createBufferSource();
+        const sliceBuf = offCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate);
+        for(let c=0; c<audioBuf.numberOfChannels; c++) { sliceBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); }
+        source.buffer = sliceBuf;
+        
+        const filter = offCtx.createBiquadFilter(); filter.type = 'peaking';
+        const centerFreq = (freqLow + freqHigh) / 2; filter.frequency.value = centerFreq;
+        filter.Q.value = Math.max(0.1, centerFreq / (freqHigh - freqLow));
+        filter.gain.value = -40;
+
+        source.connect(filter); filter.connect(offCtx.destination); source.start(0);
+        const renderedBuf = await offCtx.startRendering();
+        for (let c = 0; c < audioBuf.numberOfChannels; c++) { audioBuf.getChannelData(c).set(renderedBuf.getChannelData(c), sSmp); }
+        specCacheValid = false; draw(currentPlayTime); status.textContent = "FREQUENCY BAND SILENCED";
     }
 
     function openAmplifyModal() { if (!audioBuf) return; ampSlider.value = 100; ampValueVal.innerText = "1.00x"; amplifyModal.style.display = 'flex'; }
     function closeAmplifyModal() { amplifyModal.style.display = 'none'; if (isPreviewingAmp) stopAudio(); }
     ampSlider.oninput = (e) => { let mult = e.target.value / 100; ampValueVal.innerText = mult.toFixed(2) + "x"; if (masterGain && isPreviewingAmp) masterGain.gain.value = mult; };
     btnPreviewAmp.onclick = async () => { if (isPreviewingAmp) { stopAudio(); } else { getAudioContext(); if (audioCtx.state === 'suspended') await audioCtx.resume(); isPreviewingAmp = true; masterGain.gain.value = ampSlider.value / 100; let tempLoop = isLoopingActive; isLoopingActive = true; startAudio(loopStart); isLoopingActive = tempLoop; btnPreviewAmp.style.color = currentThemeColor; } };
+    btnApplyAmp.onclick = () => {
+         if (!audioBuf) return; let mult = ampSlider.value / 100; if (mult === 1.0) { closeAmplifyModal(); return; }
+         saveState(); const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp;
+         for (let c = 0; c < audioBuf.numberOfChannels; c++) { const data = audioBuf.getChannelData(c); for (let i = 0; i < len; i++) { data[sSmp + i] *= mult; } }
+         closeAmplifyModal(); specCacheValid = false; draw(currentPlayTime); status.textContent = `AMPLIFIED REGION BY ${mult.toFixed(2)}x`;
+     };
+
+    // --- TRUE PARAMETRIC EQ CANVAS LOGIC ---
+    function drawEQ() {
+        if (!eqCanvasObj) return;
+        const w = eqCanvasObj.width;
+        const h = eqCanvasObj.height;
+        
+        eqCtx.fillStyle = '#0a0a0a'; eqCtx.fillRect(0, 0, w, h);
+        
+        // Background Grid
+        eqCtx.strokeStyle = '#222'; eqCtx.lineWidth = 1;
+        [100, 1000, 10000].forEach(f => {
+            let x = getLogX(f, w);
+            eqCtx.beginPath(); eqCtx.moveTo(x, 0); eqCtx.lineTo(x, h); eqCtx.stroke();
+            eqCtx.fillStyle = '#555'; eqCtx.font = '10px DATA';
+            eqCtx.fillText(f >= 1000 ? (f/1000)+'k' : f, x + 5, h - 10);
+        });
+        eqCtx.beginPath(); eqCtx.moveTo(0, h/2); eqCtx.lineTo(w, h/2); eqCtx.stroke();
+        
+        // Live Spectral Trace
+        if (eqAnalyser && isPreviewingFX && fxTypeSelect.value === 'eq' && isPlaying) {
+            const data = new Uint8Array(eqAnalyser.frequencyBinCount);
+            eqAnalyser.getByteFrequencyData(data);
+            eqCtx.fillStyle = hexToRgba(currentThemeColor, 0.15);
+            eqCtx.beginPath();
+            eqCtx.moveTo(0, h);
+            for(let i=0; i<data.length; i++) {
+                let freq = i * (audioCtx.sampleRate / 2) / data.length;
+                if (freq < MIN_F) continue;
+                if (freq > MAX_F) break;
+                let x = getLogX(freq, w);
+                let y = h - (data[i] / 255) * h;
+                eqCtx.lineTo(x, y);
+            }
+            eqCtx.lineTo(w, h);
+            eqCtx.fill();
+        }
+
+        // Calculate and Draw True Magnitude Curve
+        if (!uiBiquads && audioCtx) {
+            uiBiquads = [];
+            for(let i=0; i<eqNodes.length; i++) uiBiquads.push(audioCtx.createBiquadFilter());
+        }
+        
+        if (uiBiquads) {
+            if (!eqFreqsArray || eqFreqsArray.length !== w) {
+                eqFreqsArray = new Float32Array(w);
+                for(let x=0; x<w; x++) eqFreqsArray[x] = xToFreq(x, w);
+            }
+            
+            let totalMag = new Float32Array(w);
+            totalMag.fill(1.0);
+            
+            for(let i=0; i<eqNodes.length; i++) {
+                let f = uiBiquads[i];
+                let n = eqNodes[i];
+                f.type = n.type;
+                f.frequency.value = n.f;
+                f.Q.value = n.q;
+                f.gain.value = n.g;
+                
+                let mag = new Float32Array(w);
+                let phase = new Float32Array(w);
+                f.getFrequencyResponse(eqFreqsArray, mag, phase);
+                for(let x=0; x<w; x++) totalMag[x] *= mag[x];
+            }
+            
+            eqCtx.beginPath(); eqCtx.strokeStyle = currentThemeColor; eqCtx.lineWidth = 2;
+            for(let x=0; x<w; x++) {
+                let db = 20 * Math.log10(totalMag[x]);
+                let y = gainToY(db, h);
+                if(x===0) eqCtx.moveTo(x, y); else eqCtx.lineTo(x, y);
+            }
+            eqCtx.stroke();
+            eqCtx.fillStyle = hexToRgba(currentThemeColor, 0.05);
+            eqCtx.lineTo(w, h/2); eqCtx.lineTo(0, h/2); eqCtx.fill();
+        }
+
+        // Draw Interactive Handles
+        for(let i=0; i<eqNodes.length; i++) {
+            let n = eqNodes[i];
+            let x = getLogX(n.f, w);
+            let y = gainToY(n.g, h);
+            
+            eqCtx.beginPath();
+            eqCtx.arc(x, y, 6, 0, Math.PI * 2);
+            if (hoveredEqNode === i || draggingEqNode === i) {
+                eqCtx.fillStyle = currentThemeColor;
+                eqCtx.fill();
+                eqCtx.shadowBlur = 10;
+                eqCtx.shadowColor = currentThemeColor;
+                
+                eqCtx.fillStyle = '#fff'; eqCtx.font = '11px DATA'; eqCtx.shadowBlur = 0;
+                eqCtx.fillText(`[${i+1}] ${n.f.toFixed(0)}Hz | ${n.g.toFixed(1)}dB | Q:${n.q.toFixed(2)}`, 10, 20);
+            } else {
+                eqCtx.fillStyle = '#111';
+                eqCtx.fill();
+                eqCtx.lineWidth = 2;
+                eqCtx.strokeStyle = currentThemeColor;
+                eqCtx.stroke();
+            }
+            eqCtx.shadowBlur = 0;
+        }
+        
+        if (fxModal.style.display === 'flex' && fxTypeSelect.value === 'eq') {
+            requestAnimationFrame(drawEQ);
+        }
+    }
     
-    btnApplyAmp.onclick = () => { 
-        if (!audioBuf) return; let mult = ampSlider.value / 100; if (mult === 1.0) { closeAmplifyModal(); return; } 
-        saveState(); const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp; 
-        for (let c = 0; c < audioBuf.numberOfChannels; c++) { const data = audioBuf.getChannelData(c); for (let i = 0; i < len; i++) { data[sSmp + i] *= mult; } } 
-        closeAmplifyModal(); draw(currentPlayTime); status.textContent = `AMPLIFIED REGION BY ${mult.toFixed(2)}x`; 
+    function getHoveredNode(e) {
+        const rect = eqCanvasObj.getBoundingClientRect();
+        const x = (e.clientX - rect.left) * (eqCanvasObj.width / rect.width);
+        const y = (e.clientY - rect.top) * (eqCanvasObj.height / rect.height);
+        
+        let closest = -1;
+        let minDist = 20; 
+        for(let i=0; i<eqNodes.length; i++) {
+            let nx = getLogX(eqNodes[i].f, eqCanvasObj.width);
+            let ny = gainToY(eqNodes[i].g, eqCanvasObj.height);
+            let d = Math.sqrt((x-nx)**2 + (y-ny)**2);
+            if (d < minDist) { minDist = d; closest = i; }
+        }
+        return closest;
+    }
+
+    eqCanvasObj.addEventListener('mousemove', (e) => {
+        hoveredEqNode = getHoveredNode(e);
+        eqCanvasObj.style.cursor = hoveredEqNode > -1 ? 'pointer' : 'crosshair';
+        
+        if (draggingEqNode > -1) {
+            const rect = eqCanvasObj.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (eqCanvasObj.width / rect.width);
+            const y = (e.clientY - rect.top) * (eqCanvasObj.height / rect.height);
+            
+            eqNodes[draggingEqNode].f = Math.max(MIN_F, Math.min(MAX_F, xToFreq(x, eqCanvasObj.width)));
+            eqNodes[draggingEqNode].g = Math.max(-MAX_GAIN, Math.min(MAX_GAIN, yToGain(y, eqCanvasObj.height)));
+            
+            if (activeFXChain && activeFXChain.updateEQ) activeFXChain.updateEQ();
+        }
+    });
+
+    eqCanvasObj.addEventListener('mousedown', (e) => {
+        hoveredEqNode = getHoveredNode(e);
+        if (hoveredEqNode > -1) {
+            draggingEqNode = hoveredEqNode;
+        }
+    });
+
+    window.addEventListener('mouseup', () => { draggingEqNode = -1; });
+    
+    eqCanvasObj.addEventListener('wheel', (e) => {
+        let target = hoveredEqNode > -1 ? hoveredEqNode : draggingEqNode;
+        if (target > -1) {
+            e.preventDefault();
+            let factor = e.deltaY > 0 ? 0.9 : 1.1;
+            eqNodes[target].q = Math.max(0.1, Math.min(18.0, eqNodes[target].q * factor));
+            if (activeFXChain && activeFXChain.updateEQ) activeFXChain.updateEQ();
+        }
+    }, {passive: false});
+    // ----------------------------
+    
+    // --- COMPRESSOR UI LOGIC ---
+    function updateCompUI() {
+        compDriveVal.innerText = compDrive.value + " dB";
+        compThreshVal.innerText = compThresh.value + " dB";
+        compRatioVal.innerText = compRatio.value + ":1";
+        compAttackVal.innerText = compAttack.value + " ms";
+        compReleaseVal.innerText = compRelease.value + " ms";
+        compMakeupVal.innerText = compMakeup.value + " dB";
+        if (isPreviewingFX && activeFXChain && activeFXChain.updateComp) {
+            activeFXChain.updateComp();
+        }
+    }
+    compDrive.oninput = updateCompUI;
+    compThresh.oninput = updateCompUI;
+    compRatio.oninput = updateCompUI;
+    compAttack.oninput = updateCompUI;
+    compRelease.oninput = updateCompUI;
+    compMakeup.oninput = updateCompUI;
+    // ----------------------------
+
+    function openFXModal() { 
+        if (!audioBuf) return; getAudioContext(); 
+        if (!proceduralIR) proceduralIR = generateReverbIR(audioCtx); 
+        fxSlider.value = 50; fxValueVal.innerText = "50%"; 
+        fxTypeSelect.dispatchEvent(new Event('change'));
+        fxModal.style.display = 'flex'; 
+        drawEQ(); 
+    }
+    
+    function closeFXModal() { fxModal.style.display = 'none'; if (isPreviewingFX) stopAudio(); }
+    
+    fxSlider.oninput = (e) => { 
+        let val = e.target.value;
+        fxValueVal.innerText = val + "%"; 
+        if (isPreviewingFX && activeFXChain && activeFXChain.update) { 
+            activeFXChain.update(val / 100);
+        } 
     };
 
-    function openFXModal() { if (!audioBuf) return; getAudioContext(); if (!proceduralIR) proceduralIR = generateReverbIR(audioCtx); fxSlider.value = 50; fxValueVal.innerText = "50%"; fxModal.style.display = 'flex'; }
-    function closeFXModal() { fxModal.style.display = 'none'; if (isPreviewingFX) stopAudio(); }
-    fxSlider.oninput = (e) => { fxValueVal.innerText = e.target.value + "%"; if (isPreviewingFX) { let temp = isPlaying; if (temp) stopAudio(); startAudio(currentPlayTime); } };
-    fxTypeSelect.onchange = () => { if (isPreviewingFX) { let temp = isPlaying; if (temp) stopAudio(); startAudio(currentPlayTime); } };
+    fxTypeSelect.onchange = () => { 
+        const isEq = fxTypeSelect.value === 'eq';
+        fxModalBox.style.width = isEq ? '90vw' : '340px';
+        fxModalBox.style.maxWidth = isEq ? '1200px' : '340px';
+        
+        eqCanvasContainer.style.display = isEq ? 'block' : 'none';
+        customIRContainer.style.display = fxTypeSelect.value === 'reverb' ? 'block' : 'none';
+        
+        const isComp = fxTypeSelect.value === 'compressor';
+        compControlsContainer.style.display = isComp ? 'block' : 'none';
+        standardMixContainer.style.display = isComp ? 'none' : 'flex';
+        
+        if (isPreviewingFX) { let temp = isPlaying; if (temp) stopAudio(); startAudio(currentPlayTime); } 
+        if (isEq) drawEQ();
+    };
+
+    btnLoadCustomIR.onclick = () => { customIRInput.click(); };
+    customIRInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        status.textContent = 'LOADING IR...';
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+            const ab = ev.target.result;
+            getAudioContext();
+            try {
+                customIRBuffer = await audioCtx.decodeAudioData(ab);
+                status.textContent = 'CUSTOM IR LOADED';
+                btnLoadCustomIR.innerText = "IR: " + file.name.substring(0, 15);
+                btnLoadCustomIR.style.color = 'var(--accent-color)';
+                if (isPreviewingFX) { let temp = isPlaying; if (temp) stopAudio(); startAudio(currentPlayTime); }
+            } catch(e) {
+                status.textContent = 'ERR: IR LOAD FAILED';
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
     btnPreviewFX.onclick = async () => { if (isPreviewingFX) { stopAudio(); } else { getAudioContext(); if (audioCtx.state === 'suspended') await audioCtx.resume(); isPreviewingFX = true; let tempLoop = isLoopingActive; isLoopingActive = true; startAudio(loopStart); isLoopingActive = tempLoop; btnPreviewFX.style.color = currentThemeColor; } };
     
     btnApplyFX.onclick = async () => {
         if (!audioBuf) return; closeFXModal(); status.textContent = "RENDERING FX..."; saveState();
         const type = fxTypeSelect.value; const intensity = fxSlider.value / 100; const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const selLen = eSmp - sSmp; if (selLen <= 0) return;
-        const tailTime = (type === 'tube') ? 0.1 : 3.0; const tailSmp = Math.floor(tailTime * audioBuf.sampleRate); const renderLen = selLen + tailSmp;
+        const tailTime = (type === 'eq' || type === 'compressor') ? 0.1 : 3.0; const tailSmp = Math.floor(tailTime * audioBuf.sampleRate); const renderLen = selLen + tailSmp;
+        
         const OfflineCtxClass = window.OfflineAudioContext || window.webkitOfflineAudioContext; const offCtx = new OfflineCtxClass(audioBuf.numberOfChannels, renderLen, audioBuf.sampleRate);
-        const source = offCtx.createBufferSource(); const sliceBuf = offCtx.createBuffer(audioBuf.numberOfChannels, selLen, audioBuf.sampleRate); 
-        for(let c=0; c<audioBuf.numberOfChannels; c++) { sliceBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); } 
-        source.buffer = sliceBuf; const fx = buildFXChain(offCtx, type, intensity);
+        const source = offCtx.createBufferSource(); const sliceBuf = offCtx.createBuffer(audioBuf.numberOfChannels, selLen, audioBuf.sampleRate);
+         for(let c=0; c<audioBuf.numberOfChannels; c++) { sliceBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); }
+         source.buffer = sliceBuf; 
+         
+         const fx = buildFXChain(offCtx, type, intensity);
         source.connect(fx.input); fx.output.connect(offCtx.destination); source.start(0); const renderedBuf = await offCtx.startRendering();
+        
         const newTotalLen = Math.max(audioBuf.length, sSmp + renderLen); const newBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, newTotalLen, audioBuf.sampleRate);
-        for (let c = 0; c < audioBuf.numberOfChannels; c++) { 
-            const oldData = audioBuf.getChannelData(c); const newData = newBuf.getChannelData(c); const renderData = renderedBuf.getChannelData(c); newData.set(oldData.subarray(0, sSmp), 0); 
-            if (oldData.length > sSmp + renderLen) { newData.set(oldData.subarray(sSmp + renderLen), sSmp + renderLen); } 
-            for (let i = 0; i < renderLen; i++) { 
-                const targetIdx = sSmp + i; 
-                if (targetIdx < sSmp + selLen) { newData[targetIdx] = renderData[i]; } else { const existing = (targetIdx < oldData.length) ? oldData[targetIdx] : 0; newData[targetIdx] = existing + renderData[i]; } 
-            } 
-        }
-        const oldDur = audioBuf.duration; audioBuf = newBuf; zoomH = Math.max(1, zoomH * (audioBuf.duration / oldDur)); draw(currentPlayTime); updateUI(); status.textContent = `APPLIED [${type.toUpperCase()}] WITH BLEED`;
+        for (let c = 0; c < audioBuf.numberOfChannels; c++) {
+             const oldData = audioBuf.getChannelData(c); const newData = newBuf.getChannelData(c); const renderData = renderedBuf.getChannelData(c); newData.set(oldData.subarray(0, sSmp), 0);
+             if (oldData.length > sSmp + renderLen) { newData.set(oldData.subarray(sSmp + renderLen), sSmp + renderLen); }
+             for (let i = 0; i < renderLen; i++) {
+                 const targetIdx = sSmp + i;
+                 if (targetIdx < sSmp + selLen) { newData[targetIdx] = renderData[i]; } else { const existing = (targetIdx < oldData.length) ? oldData[targetIdx] : 0; newData[targetIdx] = existing + renderData[i]; }
+             }
+         }
+        const oldDur = audioBuf.duration; audioBuf = newBuf; zoomH = Math.max(1, zoomH * (audioBuf.duration / oldDur)); specCacheValid = false; draw(currentPlayTime); updateUI(); status.textContent = `APPLIED [${type.toUpperCase()}] WITH BLEED`;
     };
 
-    function fadeInSelection() { if (!audioBuf) return; saveState(); const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp; if (len <= 0) return; for (let c = 0; c < audioBuf.numberOfChannels; c++) { const data = audioBuf.getChannelData(c); for (let i = 0; i < len; i++) { data[sSmp + i] *= (i / len); } } draw(currentPlayTime); status.textContent = "FADE IN APPLIED"; }
-    function fadeOutSelection() { if (!audioBuf) return; saveState(); const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp; if (len <= 0) return; for (let c = 0; c < audioBuf.numberOfChannels; c++) { const data = audioBuf.getChannelData(c); for (let i = 0; i < len; i++) { data[sSmp + i] *= (1.0 - (i / len)); } } draw(currentPlayTime); status.textContent = "FADE OUT APPLIED"; }
-    function zoomIn() { zoomH = Math.min(50000, zoomH * 1.5); draw(currentPlayTime); updateUI(); } 
-    function zoomOut() { zoomH = Math.max(1, zoomH / 1.5); draw(currentPlayTime); updateUI(); }
+    function fadeInSelection() { if (!audioBuf) return; saveState(); const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp; if (len <= 0) return; for (let c = 0; c < audioBuf.numberOfChannels; c++) { const data = audioBuf.getChannelData(c); for (let i = 0; i < len; i++) { data[sSmp + i] *= (i / len); } } specCacheValid = false; draw(currentPlayTime); status.textContent = "FADE IN APPLIED"; }
+    function fadeOutSelection() { if (!audioBuf) return; saveState(); const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp; if (len <= 0) return; for (let c = 0; c < audioBuf.numberOfChannels; c++) { const data = audioBuf.getChannelData(c); for (let i = 0; i < len; i++) { data[sSmp + i] *= (1.0 - (i / len)); } } specCacheValid = false; draw(currentPlayTime); status.textContent = "FADE OUT APPLIED"; }
+    function zoomIn() { zoomH = Math.min(50000, zoomH * 1.5); specCacheValid = false; draw(currentPlayTime); updateUI(); }
+     function zoomOut() { zoomH = Math.max(1, zoomH / 1.5); specCacheValid = false; draw(currentPlayTime); updateUI(); }
+
+    function closeBitmapModal() { bitmapModal.style.display = 'none'; pendingBitmapImage = null; }
+
+    btnApplyBitmap.onclick = async () => {
+        if (!pendingBitmapImage) return;
+        status.textContent = "SYNTHESIZING BITMAP...";
+        await new Promise(r => setTimeout(r, 50));
+        getAudioContext();
+        const dur = parseFloat(bmpDuration.value) || 5.0;
+        const sr = audioCtx.sampleRate;
+        const totalSamples = Math.floor(dur * sr);
+
+        const cw = 512, ch = 256;
+         const offC = document.createElement('canvas');
+        offC.width = cw; offC.height = ch;
+        const oCtx = offC.getContext('2d', {willReadFrequently: true});
+        oCtx.drawImage(pendingBitmapImage, 0, 0, cw, ch);
+        const imgData = oCtx.getImageData(0,0,cw,ch).data;
+
+        const newBuf = audioCtx.createBuffer(1, totalSamples, sr);
+        const out = newBuf.getChannelData(0);
+
+        const phases = new Float32Array(ch);
+        const maxFreq = sr / 2;
+        const freqs = new Float32Array(ch);
+
+        for(let y = 0; y < ch; y++) { freqs[y] = maxFreq * (1.0 - (y / ch)); }
+
+        let maxAmp = 0;
+        for(let i = 0; i < totalSamples; i++) {
+            let x = Math.floor((i / totalSamples) * cw);
+            let sample = 0;
+            for(let y = 0; y < ch; y++) {
+                let idx = (y * cw + x) * 4;
+                let bright = (imgData[idx] + imgData[idx+1] + imgData[idx+2]) / (3 * 255);
+                if (bright > 0.02) {
+                    phases[y] += (2 * Math.PI * freqs[y]) / sr;
+                    if (phases[y] > 2 * Math.PI) phases[y] -= 2 * Math.PI;
+                    sample += bright * Math.sin(phases[y]);
+                }
+            }
+            out[i] = sample;
+            if (Math.abs(sample) > maxAmp) maxAmp = Math.abs(sample);
+        }
+
+        if (maxAmp > 0) {
+            for(let i = 0; i < totalSamples; i++) out[i] *= (0.9 / maxAmp);
+        }
+
+        loadAudioBuffer(newBuf, "BITMAP_SYNTH");
+        closeBitmapModal();
+    };
 
     function draw(now = null) {
-        const w = canvas.width, h = canvas.height;
+        const w = Math.floor(canvas.width), h = Math.floor(canvas.height);
         ctx.fillStyle = '#050505'; ctx.fillRect(0,0,w,h);
         const gutterHeight = 18;
-        const bottomGutterHeight = 24; 
-        const channelHeight = h - gutterHeight - bottomGutterHeight;
+        const bottomGutterHeight = 24;
+        const channelHeight = Math.floor(h - gutterHeight - bottomGutterHeight);
         const yOffset = gutterHeight;
 
         ctx.fillStyle = '#080808'; ctx.fillRect(0, 0, w, gutterHeight);
@@ -891,34 +1739,17 @@
             const startTime = startSmp / sr;
             const endTime = visibleSamples > 0 ? (startSmp + visibleSamples) / sr : (w / 100);
 
-            if (showPeakSeparators) {
-                ctx.lineWidth = 1;
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'middle';
-                ctx.font = '9px DATA';
-
+            if (showPeakSeparators && !isSpectralMode) {
+                ctx.lineWidth = 1; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = '9px DATA';
                 const drawPeakLine = (amp, color, label) => {
                     let yTop = yOffset + (1 - amp * ampZoom) * channelHeight / 2;
                     let yBot = yOffset + (1 + amp * ampZoom) * channelHeight / 2;
-                                        
                     ctx.strokeStyle = color; ctx.fillStyle = color;
-                    if(yTop > yOffset && yTop < yOffset + channelHeight) { 
-                        ctx.beginPath(); ctx.moveTo(0, yTop); ctx.lineTo(w, yTop); ctx.stroke();
-                        ctx.fillText('+' + label, 5, yTop - 6);
-                    }
-                    if (amp !== 0) {
-                        if(yBot > yOffset && yBot < yOffset + channelHeight) { 
-                            ctx.beginPath(); ctx.moveTo(0, yBot); ctx.lineTo(w, yBot); ctx.stroke(); 
-                            ctx.fillText('-' + label, 5, yBot - 6);
-                        }
-                    }
+                    if(yTop > yOffset && yTop < yOffset + channelHeight) { ctx.beginPath(); ctx.moveTo(0, yTop); ctx.lineTo(w, yTop); ctx.stroke(); ctx.fillText('+' + label, 5, yTop - 6); }
+                    if (amp !== 0) { if(yBot > yOffset && yBot < yOffset + channelHeight) { ctx.beginPath(); ctx.moveTo(0, yBot); ctx.lineTo(w, yBot); ctx.stroke(); ctx.fillText('-' + label, 5, yBot - 6); } }
                 };
-
-                drawPeakLine(0, 'rgba(255, 255, 255, 0.3)', '0.0'); 
-                drawPeakLine(0.5, 'rgba(255, 255, 255, 0.1)', '0.5'); 
-                drawPeakLine(0.8, 'rgba(255, 255, 0, 0.2)', '0.8'); 
-                drawPeakLine(1.0, 'rgba(255, 0, 85, 0.3)', '1.0'); 
-            }
+                drawPeakLine(0, 'rgba(255, 255, 255, 0.3)', '0.0'); drawPeakLine(0.5, 'rgba(255, 255, 255, 0.1)', '0.5'); drawPeakLine(0.8, 'rgba(255, 255, 0, 0.2)', '0.8'); drawPeakLine(1.0, 'rgba(255, 0, 85, 0.3)', '1.0');
+             }
 
             if (isBpmMode) {
                 const beatDur = 60 / currentBpm;
@@ -930,13 +1761,13 @@
                     const x = timeToX(t);
                     if (x < 0 || x > w) continue;
 
-                    if (b % 4 === 0) { 
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'; ctx.fillRect(x, gutterHeight, 1, channelHeight);
+                    if (b % 4 === 0) {
+                         ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'; ctx.fillRect(x, gutterHeight, 1, channelHeight);
                         ctx.fillStyle = '#666'; ctx.fillRect(x, h - bottomGutterHeight, 1, 8);
                         ctx.fillStyle = '#888'; ctx.font = '10px DATA'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
                         ctx.fillText((b/4 + 1).toString(), x, h - bottomGutterHeight + 8);
-                    } else { 
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.03)'; ctx.fillRect(x, gutterHeight, 1, channelHeight);
+                    } else {
+                         ctx.fillStyle = 'rgba(255, 255, 255, 0.03)'; ctx.fillRect(x, gutterHeight, 1, channelHeight);
                         ctx.fillStyle = '#333'; ctx.fillRect(x, h - bottomGutterHeight, 1, 4);
                     }
                 }
@@ -944,11 +1775,7 @@
                 ctx.fillStyle = '#555'; ctx.font = '10px DATA'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
                 const durationVis = endTime - startTime;
                 let tickStep = 1.0;
-                if (durationVis < 0.1) tickStep = 0.01;
-                else if (durationVis < 1) tickStep = 0.1;
-                else if (durationVis < 5) tickStep = 0.5;
-                else if (durationVis > 60) tickStep = 10.0;
-                else if (durationVis > 20) tickStep = 5.0;
+                if (durationVis < 0.1) tickStep = 0.01; else if (durationVis < 1) tickStep = 0.1; else if (durationVis < 5) tickStep = 0.5; else if (durationVis > 60) tickStep = 10.0; else if (durationVis > 20) tickStep = 5.0;
 
                 const firstTick = Math.ceil(startTime / tickStep) * tickStep;
                 for (let t = firstTick; t <= endTime; t += tickStep) {
@@ -961,38 +1788,97 @@
         }
 
         if (audioBuf) {
-            const { startSmp, visibleSamples } = getVisibleData(); const step = Math.max(1, visibleSamples / w);
-            ctx.beginPath(); ctx.strokeStyle = currentThemeColor; ctx.lineWidth = 1; const data = audioBuf.getChannelData(0);
-                        
-            for (let i = 0; i < w; i++) {
-                const b = Math.floor(startSmp + (i * step)); if (b >= audioBuf.length) break;
-                let min = 1.0, max = -1.0; 
-                for(let j=0; j<step; j++) { 
-                    let idx = b + j; let v = data[idx] || 0; 
-                    if(v<min) min=v; if(v>max) max=v; 
+            const { startSmp, visibleSamples } = getVisibleData();
+            const step = Math.max(1, visibleSamples / w);
+            const data = audioBuf.getChannelData(0);
+            
+            if (isSpectralMode) {
+                if (!specCacheValid || specCanvas.width !== w || specCanvas.height !== channelHeight) {
+                    specCanvas.width = w; specCanvas.height = channelHeight;
+                    let sImg = specCtx.createImageData(w, channelHeight);
+                    const fftSize = 1024;
+                    let real = new Float32Array(fftSize);
+                    let imag = new Float32Array(fftSize);
+                    
+                    let tr = parseInt(currentThemeColor.slice(1,3), 16);
+                    let tg = parseInt(currentThemeColor.slice(3,5), 16);
+                    let tb = parseInt(currentThemeColor.slice(5,7), 16);
+                    
+                    const specSr = audioBuf.sampleRate;
+                    const minDb = -100;
+                    const maxDb = -20;
+
+                    for (let x = 0; x < w; x++) {
+                        let b = Math.floor(startSmp + (x * step));
+                        if (b >= audioBuf.length) break;
+                        for(let i=0; i<fftSize; i++) {
+                            let val = (b+i < audioBuf.length) ? data[b+i] : 0;
+                            real[i] = val * (0.5 * (1 - Math.cos((2 * Math.PI * i) / (fftSize - 1))));
+                            imag[i] = 0;
+                        }
+                        computeMiniFFT(real, imag);
+                        for (let y = 0; y < channelHeight; y++) {
+                            let freq = MIN_F * Math.pow(MAX_F / MIN_F, (channelHeight - y) / channelHeight);
+                            let bin = Math.min(fftSize/2 - 1, Math.max(0, Math.floor((freq / (specSr / 2)) * (fftSize / 2))));
+                            
+                            let mag = Math.sqrt(real[bin]*real[bin] + imag[bin]*imag[bin]) / (fftSize / 2);
+                            let db = 20 * Math.log10(mag + 1e-12);
+                            
+                            let intensity = Math.max(0, Math.min(1.0, (db - minDb) / (maxDb - minDb)));
+                            let colorVal = Math.floor(intensity * 255);
+                            
+                            let pIdx = (y * w + x) * 4;
+                            sImg.data[pIdx] = tr;
+                            sImg.data[pIdx+1] = tg;
+                            sImg.data[pIdx+2] = tb;
+                            sImg.data[pIdx+3] = colorVal; 
+                        }
+                    }
+                    specCtx.putImageData(sImg, 0, 0);
+                    specCacheValid = true;
                 }
-                const yMin = yOffset + (1 + min * ampZoom) * channelHeight / 2; 
-                const yMax = yOffset + (1 + max * ampZoom) * channelHeight / 2;
-                if (i === 0) ctx.moveTo(i, yMin); else { ctx.lineTo(i, yMin); ctx.lineTo(i, yMax); }
+                ctx.drawImage(specCanvas, 0, yOffset);
+            } else {
+                ctx.beginPath(); ctx.strokeStyle = currentThemeColor; ctx.lineWidth = 1;
+                 for (let i = 0; i < w; i++) {
+                    const b = Math.floor(startSmp + (i * step)); if (b >= audioBuf.length) break;
+                    let min = 1.0, max = -1.0;
+                     for(let j=0; j<step; j++) {
+                         let idx = b + j; let v = data[idx] || 0;
+                         if(v<min) min=v; if(v>max) max=v;
+                     }
+                    const yMin = yOffset + (1 + min * ampZoom) * channelHeight / 2;
+                     const yMax = yOffset + (1 + max * ampZoom) * channelHeight / 2;
+                    if (i === 0) ctx.moveTo(i, yMin); else { ctx.lineTo(i, yMin); ctx.lineTo(i, yMax); }
+                }
+                ctx.stroke();
             }
-            ctx.stroke();
 
             if (isChopMode) {
                 for (let i = 0; i < sliceMarkers.length; i++) {
-                    let mX = timeToX(sliceMarkers[i]); ctx.strokeStyle = currentThemeColor; ctx.lineWidth = 2; 
-                    ctx.beginPath(); ctx.moveTo(mX, gutterHeight); ctx.lineTo(mX, h - bottomGutterHeight); ctx.stroke();
+                    let mX = timeToX(sliceMarkers[i]); ctx.strokeStyle = currentThemeColor; ctx.lineWidth = 2;
+                     ctx.beginPath(); ctx.moveTo(mX, gutterHeight); ctx.lineTo(mX, h - bottomGutterHeight); ctx.stroke();
                     ctx.fillStyle = currentThemeColor; ctx.fillRect(mX - 6, gutterHeight, 12, 14); ctx.fillStyle = '#000'; ctx.font = '9px DATA'; ctx.fillText(`${i+1}`, mX - 3, gutterHeight + 11);
                 }
             } else {
                 const sX = timeToX(loopStart), eX = timeToX(loopEnd);
-                ctx.fillStyle = hexToRgba(currentThemeColor, 0.15); ctx.fillRect(sX, gutterHeight, eX - sX, channelHeight);
-                ctx.strokeStyle = currentThemeColor; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(sX, gutterHeight); ctx.lineTo(sX, h - bottomGutterHeight); ctx.stroke(); 
-                ctx.fillStyle = currentThemeColor; ctx.fillRect(sX-6, gutterHeight, 12, 14); ctx.fillStyle = '#000'; ctx.font = '10px DATA'; ctx.fillText('S', sX-3, gutterHeight + 11);
-                ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(eX, gutterHeight); ctx.lineTo(eX, h - bottomGutterHeight); ctx.stroke(); 
-                ctx.fillStyle = '#fff'; ctx.fillRect(eX-6, h - bottomGutterHeight - 14, 12, 14); ctx.fillStyle = '#000'; ctx.font = '10px DATA'; ctx.fillText('E', eX-3, h - bottomGutterHeight - 3);
+                if (isSpectralMode && freqLow < freqHigh) {
+                    let yBottom = freqToY(freqLow);
+                    let yTop = freqToY(freqHigh);
+                    ctx.fillStyle = hexToRgba(currentThemeColor, 0.25);
+                    ctx.fillRect(sX, yTop, eX - sX, yBottom - yTop);
+                    ctx.strokeStyle = currentThemeColor; ctx.lineWidth = 1;
+                    ctx.strokeRect(sX, yTop, eX - sX, yBottom - yTop);
+                } else {
+                    ctx.fillStyle = hexToRgba(currentThemeColor, 0.15); ctx.fillRect(sX, gutterHeight, eX - sX, channelHeight);
+                }
+                ctx.strokeStyle = currentThemeColor; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(sX, gutterHeight); ctx.lineTo(sX, h - bottomGutterHeight); ctx.stroke();
+                 ctx.fillStyle = currentThemeColor; ctx.fillRect(sX-6, gutterHeight, 12, 14); ctx.fillStyle = '#000'; ctx.font = '10px DATA'; ctx.fillText('S', sX-3, gutterHeight + 11);
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(eX, gutterHeight); ctx.lineTo(eX, h - bottomGutterHeight); ctx.stroke();
+                 ctx.fillStyle = '#fff'; ctx.fillRect(eX-6, h - bottomGutterHeight - 14, 12, 14); ctx.fillStyle = '#000'; ctx.font = '10px DATA'; ctx.fillText('E', eX-3, h - bottomGutterHeight - 3);
             }
-                        
-            if (!isChopMode && !isRecording && (loopEnd - loopStart > 0.01)) {
+            
+            if (!isChopMode && !isRecording && !isSpectralMode && (loopEnd - loopStart > 0.01)) {
                 const eX = timeToX(loopEnd);
                 if (eX > 0 && eX <= w) {
                     regionVolWheel.style.display = 'flex';
@@ -1009,9 +1895,8 @@
         }
 
         if (isRecording) {
-            ctx.beginPath(); ctx.strokeStyle = '#ff0055'; ctx.lineWidth = 1.5; 
-                        
-            if (audioBuf) {
+            ctx.beginPath(); ctx.strokeStyle = '#ff0055'; ctx.lineWidth = 1.5;
+             if (audioBuf) {
                 const sX = timeToX(recordStartOffset); const eX = timeToX(recordStartOffset + (audioCtx.currentTime - recordingStartTime)); const points = liveWaveformData.length;
                 if (points > 0 && eX > sX) {
                     const stepX = (eX - sX) / points;
@@ -1034,15 +1919,15 @@
                 ctx.fillStyle = '#ff0055'; ctx.beginPath(); ctx.moveTo(pX - 6, 0); ctx.lineTo(pX + 6, 0); ctx.lineTo(pX, gutterHeight - 2); ctx.fill(); ctx.beginPath(); ctx.moveTo(pX, gutterHeight); ctx.lineTo(pX, h - bottomGutterHeight); ctx.stroke();
             }
         }
-                
+        
         if (now !== null && (!isRecording || audioBuf)) {
             const pX = timeToX(now);
-            if (pX >= -10 && pX <= w + 10) { 
-                ctx.fillStyle = '#ff0055'; ctx.beginPath(); ctx.moveTo(pX - 6, 0); ctx.lineTo(pX + 6, 0); ctx.lineTo(pX, gutterHeight - 2); ctx.fill(); 
-                ctx.strokeStyle = '#ff0055'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(pX, gutterHeight); ctx.lineTo(pX, h - bottomGutterHeight); ctx.stroke(); 
-            }
+            if (pX >= -10 && pX <= w + 10) {
+                 ctx.fillStyle = '#ff0055'; ctx.beginPath(); ctx.moveTo(pX - 6, 0); ctx.lineTo(pX + 6, 0); ctx.lineTo(pX, gutterHeight - 2); ctx.fill();
+                 ctx.strokeStyle = '#ff0055'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(pX, gutterHeight); ctx.lineTo(pX, h - bottomGutterHeight); ctx.stroke();
+             }
         }
-                
+        
         if (audioBuf) {
             const { visibleSamples, totalLen } = getVisibleData();
             const trackWidth = scrollTrack.clientWidth;
@@ -1068,23 +1953,23 @@
         if (isLoopingActive && !isRecording) {
             let offset = absoluteTime - loopStart; if (offset < 0) offset = 0; currentPlayTime = loopStart + (offset % dur);
         } else { currentPlayTime = absoluteTime; if (currentPlayTime >= audioBuf.duration && !isRecording) currentPlayTime = audioBuf.duration; }
-                
+        
         autoScroll(currentPlayTime);
         draw(currentPlayTime); updateTimeDisplay(currentPlayTime); aniFrame = requestAnimationFrame(renderLoop);
     }
 
-    function updateUI() { 
-        if (!audioBuf) {
-            scrollThumb.style.width = '100%'; scrollThumb.style.left = '0px'; return; 
-        }
-        loopDisp.textContent = `${loopStart.toFixed(3)}S >> ${loopEnd.toFixed(3)}S`; 
-        zoomMagDisp.textContent = `${Math.round(zoomH)}X`; ampMagDisp.textContent = `${ampZoom.toFixed(1)}X`; 
+    function updateUI() {
+         if (!audioBuf) {
+            scrollThumb.style.width = '100%'; scrollThumb.style.left = '0px'; return;
+         }
+        loopDisp.textContent = `${loopStart.toFixed(3)}S >> ${loopEnd.toFixed(3)}S`;
+         zoomMagDisp.textContent = `${Math.round(zoomH)}X`; ampMagDisp.textContent = `${ampZoom.toFixed(1)}X`; 
 
         const dur = loopEnd - loopStart;
         if (dur > 0.05) {
             let beatsArray = [1, 2, 4, 8, 16, 32, 64];
-            let bestBpm = (4 * 60) / dur; 
-            let bestBeats = 4;
+            let bestBpm = (4 * 60) / dur;
+             let bestBeats = 4;
             for (let b of beatsArray) {
                 let bpm = (b * 60) / dur;
                 if (bpm >= 70 && bpm <= 160) {
@@ -1099,12 +1984,24 @@
         }
     }
 
-    async function handleFile(e) { 
-        const file = e.target.files[0]; if (!file) return; 
-        getAudioContext(); status.textContent = 'SCANNING...'; 
-        try { 
-            const ab = await file.arrayBuffer(); const decodedBuf = await audioCtx.decodeAudioData(ab); loadAudioBuffer(decodedBuf, file.name); 
-        } catch (err) { status.textContent = "ERR: FILE_CORRUPT"; } 
+    async function handleFile(e) {
+         const file = e.target.files[0]; if (!file) return;
+         getAudioContext(); if (audioCtx.state === 'suspended') await audioCtx.resume();
+        status.textContent = 'SCANNING...';
+         try {
+             const ab = await file.arrayBuffer(); const decodedBuf = await audioCtx.decodeAudioData(ab); loadAudioBuffer(decodedBuf, file.name);
+         } catch (err) { status.textContent = "ERR: FILE_CORRUPT"; }
+     }
+
+    function handleBitmapFile(e) {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => { pendingBitmapImage = img; bitmapModal.style.display = 'flex'; };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
     }
 
     function encodeWAV(buf) {
@@ -1114,13 +2011,13 @@
         for(let i=0; i<buf.length; i++) { for(let c=0; c<n; c++) { let v = Math.max(-1, Math.min(1, buf.getChannelData(c)[i])); view.setInt16(pos, v < 0 ? v * 0x8000 : v * 0x7FFF, true); pos+=2; } } return ab;
     }
     
-    function exportWav() { 
-        if (!audioBuf) return; const sSmp = Math.floor(loopStart * audioBuf.sampleRate), eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp; if (len <= 0) return; const nBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate); for(let c=0; c<audioBuf.numberOfChannels; c++) { nBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); } const wav = encodeWAV(nBuf); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([wav], {type:'audio/wav'})); a.download = `AZ9000_${Date.now()}.wav`; a.click(); 
-    }
-    
+    function exportWav() {
+         if (!audioBuf) return; const sSmp = Math.floor(loopStart * audioBuf.sampleRate), eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp; if (len <= 0) return; const nBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate); for(let c=0; c<audioBuf.numberOfChannels; c++) { nBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); } const wav = encodeWAV(nBuf); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([wav], {type:'audio/wav'})); a.download = `AZ9000_${Date.now()}.wav`; a.click();
+     }
+     
     async function exportSlices() {
-        if (!audioBuf || sliceMarkers.length === 0) { alert("No slice points defined."); return; } 
-        let timestamp = Date.now(); let folderName = `AZ9000_Slices_${timestamp}/`; let sortedSlices = [0, ...sliceMarkers.sort((a,b)=>a-b), audioBuf.duration]; let sliceBlobs = [];
+        if (!audioBuf || sliceMarkers.length === 0) { alert("No slice points defined."); return; }
+         let timestamp = Date.now(); let folderName = `AZ9000_Slices_${timestamp}/`; let sortedSlices = [0, ...sliceMarkers.sort((a,b)=>a-b), audioBuf.duration]; let sliceBlobs = [];
         for (let i = 0; i < sortedSlices.length - 1; i++) { let sSmp = Math.floor(sortedSlices[i] * audioBuf.sampleRate); let eSmp = Math.floor(sortedSlices[i+1] * audioBuf.sampleRate); let len = eSmp - sSmp; if (len <= 0) continue; let nBuf = audioCtx.createBuffer(audioBuf.numberOfChannels, len, audioBuf.sampleRate); for(let c=0; c<audioBuf.numberOfChannels; c++) { nBuf.getChannelData(c).set(audioBuf.getChannelData(c).subarray(sSmp, eSmp)); } let wav = encodeWAV(nBuf); sliceBlobs.push({ name: `${folderName}slice_${i+1}.wav`, data: wav }); }
         let zipParts = [], centralDirectory = [], offset = 0;
         for (let slice of sliceBlobs) {
@@ -1131,7 +2028,9 @@
         let finalZip = [...zipParts, ...centralDirectory, eocd]; let zipBlob = new Blob(finalZip, { type: 'application/zip' }); let a = document.createElement('a'); a.href = URL.createObjectURL(zipBlob); a.download = `AZ9000_Slices_${timestamp}.zip`; a.click(); status.textContent = "SLICES EXPORTED";
     }
 
-    input.onchange = handleFile; 
-    window.onload = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; draw(); }; 
-    window.onresize = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; draw(currentPlayTime); };
-</script></body></html>
+    input.addEventListener('change', handleFile); loadBitmapInput.addEventListener('change', handleBitmapFile);
+    window.onload = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; drawEQ(); draw(); };
+     window.onresize = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; specCacheValid = false; draw(currentPlayTime); };
+</script>
+</body>
+</html>
