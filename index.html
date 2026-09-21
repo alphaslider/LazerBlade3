@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AZ-9000 // True Parametric EQ + Spectral Fix</title>
+    <title>AZ-9000 // Stable Loop Engine + Parametric EQ</title>
     <style>
         @font-face { font-family: 'DATA'; src: url('data.ttf') format('truetype'), local('Courier New'), monospace; font-display: swap; }
         :root {
@@ -555,6 +555,7 @@
         if (isBpmMode) menuTimeFormat.style.color = currentThemeColor;
         if (showPeakSeparators) menuPeakSep.style.color = currentThemeColor;
         if (isSpectralMode) { menuSpectralMode.style.color = currentThemeColor; specCacheValid = false; }
+        drawEQ(); draw(currentPlayTime);
     });
 
     function changeBpm(delta) {
@@ -723,6 +724,13 @@
         const h = canvas.height - 18 - 24;
         const maxFreq = audioBuf ? audioBuf.sampleRate / 2 : 22050;
         return 18 + h * (1.0 - (f / maxFreq));
+    }
+
+    function syncLoopPoints() { 
+        if (sourceNode && isPlaying && !isChopMode) { 
+            sourceNode.loopStart = loopStart; 
+            sourceNode.loopEnd = (loopEnd >= audioBuf.duration - 0.001) ? 0 : loopEnd; 
+        } 
     }
 
     window.addEventListener('mousemove', (e) => {
@@ -1124,6 +1132,8 @@
             sourceNode.connect(masterGain);
         }
 
+        let effLoop = isLoopingActive || isPreviewingAmp || isPreviewingFX;
+
         if (isChopMode && isTriggerMode) {
             let sorted = [0, ...sliceMarkers.sort((a,b)=>a-b), audioBuf.duration]; let sStart = 0, sEnd = audioBuf.duration;
             for (let i = 0; i < sorted.length - 1; i++) { if (offset >= sorted[i] - 0.0001 && offset < sorted[i+1]) { sStart = sorted[i]; sEnd = sorted[i+1]; break; } }
@@ -1131,17 +1141,24 @@
             sourceNode.start(0, sStart, durationToPlay); playbackStartTime = audioCtx.currentTime - sStart; currentPlayTime = sStart; isPlaying = true;
             sourceNode.onended = () => { if (isPlaying) stopAudio(); };
         } else {
-            sourceNode.loop = isLoopingActive; sourceNode.loopStart = loopStart; sourceNode.loopEnd = loopEnd;
-            let startPoint = offset; if (isLoopingActive && (startPoint < loopStart || startPoint > loopEnd)) startPoint = loopStart;
-            sourceNode.start(0, startPoint); playbackStartTime = audioCtx.currentTime - startPoint; currentPlayTime = startPoint; isPlaying = true;
-            if (!isLoopingActive) sourceNode.onended = () => { if (isPlaying) stopAudio(); };
+            sourceNode.loopStart = loopStart;
+            sourceNode.loopEnd = (loopEnd >= audioBuf.duration - 0.001) ? 0 : loopEnd;
+            sourceNode.loop = effLoop;
+            
+            let startPoint = offset; 
+            if (effLoop && (startPoint < loopStart || startPoint >= loopEnd - 0.001)) startPoint = loopStart;
+            
+            sourceNode.start(0, startPoint); 
+            playbackStartTime = audioCtx.currentTime - startPoint; currentPlayTime = startPoint; isPlaying = true;
+            if (!effLoop) sourceNode.onended = () => { if (isPlaying) stopAudio(); };
         }
         btnPlay.style.color = "var(--accent-color)"; renderLoop();
     }
 
     function stopAudio() {
         if (sourceNode) { try { sourceNode.stop(); } catch(e){} sourceNode.disconnect(); sourceNode = null; }
-        isPlaying = false; if (isPreviewingAmp) { isPreviewingAmp = false; masterGain.gain.value = 1.0; btnPreviewAmp.style.color = ""; }
+        isPlaying = false; 
+        if (isPreviewingAmp) { isPreviewingAmp = false; masterGain.gain.value = 1.0; btnPreviewAmp.style.color = ""; }
         if (isPreviewingFX) { isPreviewingFX = false; btnPreviewFX.style.color = ""; activeFXChain = null; }
         btnPlay.style.color = ""; cancelAnimationFrame(aniFrame); draw(currentPlayTime);
     }
@@ -1180,8 +1197,6 @@
              timeDisplay.textContent = `${mins}:${secs}:${millis}`;
         }
     }
-
-    function syncLoopPoints() { if (sourceNode && isPlaying && !isChopMode) { sourceNode.loopStart = loopStart; sourceNode.loopEnd = loopEnd; } }
 
     function getVisibleData() {
         let baseLength = audioBuf ? audioBuf.length : 0;
@@ -1390,7 +1405,16 @@
     function openAmplifyModal() { if (!audioBuf) return; ampSlider.value = 100; ampValueVal.innerText = "1.00x"; amplifyModal.style.display = 'flex'; }
     function closeAmplifyModal() { amplifyModal.style.display = 'none'; if (isPreviewingAmp) stopAudio(); }
     ampSlider.oninput = (e) => { let mult = e.target.value / 100; ampValueVal.innerText = mult.toFixed(2) + "x"; if (masterGain && isPreviewingAmp) masterGain.gain.value = mult; };
-    btnPreviewAmp.onclick = async () => { if (isPreviewingAmp) { stopAudio(); } else { getAudioContext(); if (audioCtx.state === 'suspended') await audioCtx.resume(); isPreviewingAmp = true; masterGain.gain.value = ampSlider.value / 100; let tempLoop = isLoopingActive; isLoopingActive = true; startAudio(loopStart); isLoopingActive = tempLoop; btnPreviewAmp.style.color = currentThemeColor; } };
+    btnPreviewAmp.onclick = async () => { 
+        if (isPreviewingAmp) { stopAudio(); } 
+        else { 
+            getAudioContext(); if (audioCtx.state === 'suspended') await audioCtx.resume(); 
+            isPreviewingAmp = true; 
+            masterGain.gain.value = ampSlider.value / 100; 
+            startAudio(loopStart); 
+            btnPreviewAmp.style.color = currentThemeColor; 
+        } 
+    };
     btnApplyAmp.onclick = () => {
          if (!audioBuf) return; let mult = ampSlider.value / 100; if (mult === 1.0) { closeAmplifyModal(); return; }
          saveState(); const sSmp = Math.floor(loopStart * audioBuf.sampleRate); const eSmp = Math.floor(loopEnd * audioBuf.sampleRate); const len = eSmp - sSmp;
@@ -1635,7 +1659,15 @@
         reader.readAsArrayBuffer(file);
     });
 
-    btnPreviewFX.onclick = async () => { if (isPreviewingFX) { stopAudio(); } else { getAudioContext(); if (audioCtx.state === 'suspended') await audioCtx.resume(); isPreviewingFX = true; let tempLoop = isLoopingActive; isLoopingActive = true; startAudio(loopStart); isLoopingActive = tempLoop; btnPreviewFX.style.color = currentThemeColor; } };
+    btnPreviewFX.onclick = async () => { 
+        if (isPreviewingFX) { stopAudio(); } 
+        else { 
+            getAudioContext(); if (audioCtx.state === 'suspended') await audioCtx.resume(); 
+            isPreviewingFX = true; 
+            startAudio(loopStart); 
+            btnPreviewFX.style.color = currentThemeColor; 
+        } 
+    };
     
     btnApplyFX.onclick = async () => {
         if (!audioBuf) return; closeFXModal(); status.textContent = "RENDERING FX..."; saveState();
@@ -1950,9 +1982,14 @@
         }
         const dur = loopEnd - loopStart; if (dur <= 0) return;
         let absoluteTime = audioCtx.currentTime - playbackStartTime;
-        if (isLoopingActive && !isRecording) {
+        
+        let effLoop = isLoopingActive || isPreviewingAmp || isPreviewingFX;
+
+        if (effLoop && !isRecording) {
             let offset = absoluteTime - loopStart; if (offset < 0) offset = 0; currentPlayTime = loopStart + (offset % dur);
-        } else { currentPlayTime = absoluteTime; if (currentPlayTime >= audioBuf.duration && !isRecording) currentPlayTime = audioBuf.duration; }
+        } else { 
+            currentPlayTime = absoluteTime; if (currentPlayTime >= audioBuf.duration && !isRecording) currentPlayTime = audioBuf.duration; 
+        }
         
         autoScroll(currentPlayTime);
         draw(currentPlayTime); updateTimeDisplay(currentPlayTime); aniFrame = requestAnimationFrame(renderLoop);
